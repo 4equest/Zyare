@@ -1,0 +1,111 @@
+{# templates/game/play.html #}
+{% extends "base.html" %}
+
+{% set hide_header = true %}
+
+{% block head_extras %}{% endblock %}
+{% block content %}
+<div class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+  <div class="w-full max-w-[95vw] bg-white/50 backdrop-blur-md p-6 rounded shadow">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold">ターン {{ game_state.current_turn + 1 }}</h2>
+      <div class="text-sm text-gray-600">
+        投稿完了: <span id="completed-count">{{ game_state.completed_count }}</span>/<span id="total-players">{{ game_state.total_players }}</span>
+      </div>
+    </div>
+
+    <!-- プログレスバー -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-gray-600">投稿状況</span>
+        <span id="progressText" class="text-gray-800 font-semibold">{{ game_state.completed_count }}/{{ game_state.total_players }} 完了</span>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-2.5">
+        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: {{ (game_state.completed_count / game_state.total_players) * 100 }}%"></div>
+      </div>
+    </div>
+
+    <div class="mb-6 bg-white/70 p-4 rounded shadow-sm">
+      <h3 class="text-lg font-semibold mb-4">{{ current_note.title }}</h3>
+      
+      <div class="grid grid-cols-2 gap-8">
+        <!-- 左側: 前のプレイヤーの投稿 -->
+        <div class="border-r pr-8">
+          <h4 class="text-sm font-medium text-gray-600 mb-2">前のプレイヤーの投稿</h4>
+          <div id="previous-content" class="min-h-[500px] bg-gray-50 p-4 rounded">
+            {% if previous_content %}
+              {{ previous_content.paragraph }}
+            {% else %}
+              <p class="text-gray-400 italic">まだ投稿がありません</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- 右側: 現在のプレイヤーの投稿フォーム -->
+        <div class="flex flex-col">
+          <h4 class="text-sm font-medium text-gray-600 mb-2">あなたの投稿</h4>
+          <div class="flex-1 flex flex-col">
+            <textarea 
+              id="paragraph-input"
+              class="flex-1 w-full border border-gray-300 rounded p-4 resize-none"
+              placeholder="ここに文章を入力してください..."
+            ></textarea>
+            <div class="flex justify-end mt-4">
+              <button 
+                onclick="submitParagraph()"
+                class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg"
+              >
+                投稿する
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    const socket = io('/ws/game', {
+      path: '/socket.io'
+    });
+    const roomId = {{ room.id }};
+    const noteId = {{ current_note.id }};
+    let hasSubmitted = false;
+
+    // WebSocket接続
+    socket.emit('subscribe_game', { room_id: roomId });
+
+    // パラグラフ投稿の進捗状況を受信
+    socket.on('paragraph_progress', (data) => {
+        document.getElementById('completed-count').textContent = data.completed_count;
+        document.getElementById('total-players').textContent = data.total_players;
+        document.getElementById('progressText').textContent = `${data.completed_count}/${data.total_players} 完了`;
+        document.getElementById('progressBar').style.width = `${(data.completed_count / data.total_players) * 100}%`;
+    });
+
+    // 全員が投稿完了したら次のターンへ
+    socket.on('all_paragraphs_submitted', () => {
+        window.location.reload();
+    });
+
+    // パラグラフ投稿関数
+    function submitParagraph() {
+        const paragraph = document.getElementById('paragraph-input').value;
+        if (!paragraph.trim()) {
+            alert('文章を入力してください');
+            return;
+        }
+
+        socket.emit('submit_paragraph', {
+            room_id: roomId,
+            note_id: noteId,
+            paragraph: paragraph,
+            is_update: hasSubmitted
+        });
+
+        hasSubmitted = true;
+    }
+</script>
+{% endblock %}

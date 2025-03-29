@@ -1,0 +1,37 @@
+{# templates/auth/login.html #}
+{% extends "base.html" %}
+{% block title %}ログイン{% endblock %}
+
+{% block content %}
+{% include 'components/glass_card.html' %}
+  {% block glass_content %}
+    <h2 class="text-2xl font-bold mb-4">ログイン</h2>
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      {% with field_id="user_id" ,
+        field_name="user_id" ,
+        label_text="ユーザーID" ,
+        field_type="text" ,
+        placeholder="ユーザーID" 
+      %}
+      {% include 'components/form_field.html' %}
+      {% endwith %}
+      {% with field_id="password" ,
+      field_name="password" ,
+      label_text="パスワード" ,
+      field_type="password" ,
+      placeholder="パスワード" 
+%}
+      {% include 'components/form_field.html'%} 
+      {% endwith %}
+      <button class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900" type="submit">
+        ログイン
+      </button>
+    </form>
+    
+    <div class="mt-4">
+      <a href="{{ url_for('auth.register') }}" class="text-sm text-blue-600 hover:underline">
+        アカウント作成はこちら
+      </a>
+    </div>
+  {% endblock %}
+{% endblock %}

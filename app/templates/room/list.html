@@ -1,0 +1,23 @@
+{# templates/room/list.html #}
+{% extends "base.html" %}
+{% block title %}ルーム一覧{% endblock %}
+
+{% block content %}
+{% include 'components/glass_card.html' %}
+  {% block glass_content %}
+    <h2 class="text-2xl font-bold mb-4">ルーム一覧</h2>
+    <ul>
+      {% for rm in rooms %}
+        <li class="mb-2 flex items-center justify-between">
+          <div>
+            <span class="font-semibold text-lg">{{ rm.name }}</span>
+            <span class="ml-2 text-sm text-gray-600">モード: {{ rm.settings.game_mode|default('normal') }}</span>
+          </div>
+          <a class="text-blue-600 hover:underline" href="{{ url_for('room.room_detail', room_id=rm.id) }}">
+            詳細
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endblock %}
+{% endblock %}

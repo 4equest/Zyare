@@ -1,0 +1,25 @@
+{# templates/auth/register.html #}
+{% extends "base.html" %}
+{% block title %}アカウント作成{% endblock %}
+
+{% block content %}
+{% include 'components/glass_card.html' %}
+  {% block glass_content %}
+    <h2 class="text-2xl font-bold mb-4">アカウント作成</h2>
+    
+    {# アカウント作成後、パスワードが表示される場合の例 #}
+    {% if password is defined %}
+      <p class="mb-4 text-lg font-semibold text-red-700">自動生成パスワード: {{ password }}</p>
+      <p>このパスワードは変更できません。必ずメモしてください。</p>
+    {% else %}
+      <form method="POST" action="{{ url_for('auth.register') }}">
+        {% with field_id="user_id", field_name="user_id", label_text="新規ユーザーID", field_type="text", placeholder="ユーザーIDを入力してください" %}
+          {% include 'components/form_field.html' %}
+        {% endwith %}
+        <button class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900" type="submit">
+          作成
+        </button>
+      </form>
+    {% endif %}
+  {% endblock %}
+{% endblock %}

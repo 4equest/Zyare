@@ -1,0 +1,21 @@
+{# templates/components/header.html #}
+<nav
+  class="fixed top-0 w-full h-12 flex items-center justify-between px-4
+         backdrop-blur-sm bg-white/60 shadow-md border-b border-gray-300"
+>
+
+  <div class="text-lg font-semibold">
+    <a href="{{ url_for('room.room_list') }}" class="hover:text-gray-600">
+      Zyare
+    </a>
+  </div>
+
+  <ul class="flex space-x-4 text-sm font-medium">
+    <li><a href="{{ url_for('room.create_room') }}" class="hover:text-gray-600">ルーム作成</a></li>
+    <li><a href="{{ url_for('room.room_list') }}" class="hover:text-gray-600">ルーム一覧</a></li>
+    <!--
+    <li><a href="" class="hover:text-gray-600">アカウント設定</a></li>
+  -->
+    <li><a href="{{ url_for('auth.logout') }}" class="hover:text-gray-600">ログアウト</a></li>
+  </ul>
+</nav>

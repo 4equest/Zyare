@@ -1,0 +1,245 @@
+{# templates/game/result.html #}
+{% extends "base.html" %}
+
+{% set hide_header = true %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 flex">
+  <!-- サイドバー -->
+  <div class="w-64 bg-white/50 backdrop-blur-md p-4 border-r border-gray-200">
+    <h2 class="text-lg font-semibold mb-4">ノート一覧</h2>
+    <div class="space-y-2">
+      {% for note in notes %}
+        {% set note_id = note.id|string %}
+        {% set is_first = loop.first %}
+        {% set is_visible = visibility_state[note_id]['0']|default(false) %}
+        {% set is_current = loop.first %}
+        <button 
+          id="note-button-{{ note.id }}"
+          class="w-full text-left px-4 py-2 rounded-lg transition-colors
+            {% if is_current %}
+              bg-blue-100 text-blue-800
+            {% elif is_visible %}
+              hover:bg-gray-100
+            {% else %}
+              opacity-50 cursor-not-allowed
+            {% endif %}"
+          onclick="showNote({{ note.id }})"
+          {% if not is_visible %}disabled{% endif %}
+        >
+          ノート {{ loop.index }}
+        </button>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- メインコンテンツ -->
+  <div class="flex-1 p-8">
+    {% for note in notes %}
+      {% set note_id = note.id|string %}
+      {% set is_first = loop.first %}
+      {% set is_visible = visibility_state[note_id]['0']|default(false) %}
+      <div 
+        id="note-content-{{ note.id }}"
+        class="{% if not is_first %}hidden{% endif %}"
+      >
+        <h3 class="text-2xl font-bold mb-6">{{ note.title }}</h3>
+        <div class="space-y-6">
+          {% for content in note.contents %}
+            {% set is_visible = visibility_state[note_id][loop.index0|string]|default(false) %}
+            <div 
+              id="paragraph-{{ note.id }}-{{ loop.index0 }}"
+              class="{% if not is_visible %}hidden{% endif %} bg-white/70 backdrop-blur-md p-6 rounded-lg shadow-sm"
+            >
+              <div class="text-sm text-gray-600 mb-2">プレイヤー {{ room.players|selectattr('user_id', 'equalto', content.writer_id)|map(attribute='nickname')|first }}</div>
+              <div class="text-lg">{{ content.paragraph }}</div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+
+    <!-- 次のノートを表示ボタン -->
+    <div id="next-note-button" class="hidden mt-8">
+      <button 
+        onclick="showNextNote()"
+        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        次のノートを表示
+      </button>
+    </div>
+  </div>
+
+  <!-- 次へボタン（ルーム作成者のみ表示） -->
+  {% if room.creator_id == current_user.id %}
+    <div class="fixed bottom-8 right-8 space-y-4">
+      <button 
+        onclick="nextParagraph()"
+        class="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors text-lg shadow-lg"
+      >
+        次へ
+      </button>
+      <!-- 終了ボタン -->
+      <button 
+        id="end-game-button"
+        onclick="endGame()"
+        class="hidden bg-red-600 text-white px-8 py-4 rounded-lg hover:bg-red-700 transition-colors text-lg shadow-lg"
+      >
+        ゲームを終了
+      </button>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const socket = io('/ws/game', {
+    path: '/socket.io'
+  });
+  const roomId = {{ room.id }};
+  const currentUser = "{{ current_user.id }}";
+  const isCreator = {% if room.creator_id == current_user.id %}true{% else %}false{% endif %};
+  let visibilityState = {{ visibility_state|tojson }};
+  let currentNoteId = null;
+
+  // WebSocket接続
+  socket.emit('subscribe_result', { room_id: roomId });
+
+  // 表示状態の更新を受信
+  socket.on('visibility_update', (data) => {
+    updateVisibility(data.visibility_state);
+  });
+
+  // 次のノート表示を受信
+  socket.on('show_next_note', (data) => {
+    const nextNoteId = data.next_note_id;
+    showNote(nextNoteId);
+  });
+
+  // ゲーム終了イベントを受信
+  socket.on('game_ended', (data) => {
+    window.location.href = data.redirect_url;
+  });
+
+  // 表示状態を更新
+  function updateVisibility(newVisibilityState) {
+    visibilityState = newVisibilityState;
+    
+    // 全てのパラグラフの表示状態を更新
+    Object.entries(visibilityState).forEach(([noteId, paragraphs]) => {
+      Object.entries(paragraphs).forEach(([index, visible]) => {
+        const paragraph = document.getElementById(`paragraph-${noteId}-${index}`);
+        if (paragraph) {
+          if (visible) {
+            paragraph.classList.remove('hidden');
+          } else {
+            paragraph.classList.add('hidden');
+          }
+        }
+      });
+
+      // ノートボタンの状態を更新
+      const noteButton = document.getElementById(`note-button-${noteId}`);
+      if (noteButton) {
+        const isVisible = paragraphs['0'] === true;
+        if (isVisible) {
+          noteButton.disabled = false;
+          noteButton.classList.remove('opacity-50', 'cursor-not-allowed');
+          noteButton.classList.add('hover:bg-gray-100');
+        } else {
+          noteButton.disabled = true;
+          noteButton.classList.add('opacity-50', 'cursor-not-allowed');
+          noteButton.classList.remove('hover:bg-gray-100');
+        }
+      }
+    });
+
+    // 次のノートボタンの表示判定
+    checkNextNoteButton();
+    // 終了ボタンの表示判定
+    checkEndGameButton();
+  }
+
+  // ノートを表示
+  function showNote(noteId) {
+    // 全てのノートコンテンツを非表示
+    document.querySelectorAll('[id^="note-content-"]').forEach(el => {
+      el.classList.add('hidden');
+    });
+    // 選択されたノートを表示
+    document.getElementById(`note-content-${noteId}`).classList.remove('hidden');
+
+    // ボタンのスタイルを更新
+    document.querySelectorAll('[id^="note-button-"]').forEach(button => {
+      button.classList.remove('bg-blue-100', 'text-blue-800');
+      button.classList.add('hover:bg-gray-100');
+    });
+    const selectedButton = document.getElementById(`note-button-${noteId}`);
+    if (selectedButton) {
+      selectedButton.classList.remove('hover:bg-gray-100');
+      selectedButton.classList.add('bg-blue-100', 'text-blue-800');
+    }
+
+    currentNoteId = noteId;
+  }
+
+  // 次のノートボタンの表示判定
+  function checkNextNoteButton() {
+    const nextNoteButton = document.getElementById('next-note-button');
+    if (!nextNoteButton) return;
+
+    // 現在表示中のノートの全てのパラグラフが表示されているか確認
+    const currentNote = document.querySelector('[id^="note-content-"]:not(.hidden)');
+    if (!currentNote) return;
+
+    const currentNoteId = currentNote.id.split('-')[2];
+    const paragraphs = visibilityState[currentNoteId] || {};
+    const allParagraphsVisible = Object.values(paragraphs).every(visible => visible);
+
+    nextNoteButton.classList.toggle('hidden', !allParagraphsVisible);
+  }
+
+  // 終了ボタンの表示判定
+  function checkEndGameButton() {
+    const endGameButton = document.getElementById('end-game-button');
+    if (!endGameButton) return;
+
+    const allParagraphsVisible = Object.entries(visibilityState).every(([noteId, paragraphs]) => {
+      return Object.values(paragraphs).every(visible => visible);
+    });
+    endGameButton.classList.toggle('hidden', !allParagraphsVisible);
+  }
+
+  // 次のノートを表示
+  function showNextNote() {
+    const currentNote = document.querySelector('[id^="note-content-"]:not(.hidden)');
+    if (currentNote) {
+      const currentNoteId = currentNote.id.split('-')[2];
+      const nextNoteId = parseInt(currentNoteId) + 1;
+      const nextNote = document.getElementById(`note-content-${nextNoteId}`);
+      if (nextNote) {
+        // 全ユーザーに次のノートを表示するように通知
+        socket.emit('show_next_note', { room_id: roomId, next_note_id: nextNoteId });
+      }
+    }
+  }
+
+  // 次へボタンのクリックハンドラ
+  function nextParagraph() {
+    if (!isCreator) return;
+    socket.emit('next_paragraph', { room_id: roomId });
+  }
+
+  // ゲーム終了ボタンのクリックハンドラ
+  function endGame() {
+    if (!isCreator) return;
+    socket.emit('end_game', { room_id: roomId });
+  }
+
+      // 次のノートボタンの表示判定
+      checkNextNoteButton();
+    // 終了ボタンの表示判定
+    checkEndGameButton();
+</script>
+{% endblock %}

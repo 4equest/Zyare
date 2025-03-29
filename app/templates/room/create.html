@@ -1,0 +1,35 @@
+{# templates/room/create.html #}
+{% extends "base.html" %}
+{% block title %}ルーム作成{% endblock %}
+
+{% block content %}
+{% include 'components/glass_card.html' %}
+  {% block glass_content %}
+    <h2 class="text-2xl font-bold mb-4">ルーム作成</h2>
+    <form method="POST" action="{{ url_for('room.create_room') }}">
+      {% with field_id="room_name", field_name="room_name", label_text="ルーム名", field_type="text" %}
+        {% include 'components/form_field.html' %}
+      {% endwith %}
+      {% with field_id="room_password", field_name="room_password", label_text="ルームパスワード(任意)", field_type="text" %}
+        {% include 'components/form_field.html' %}
+      {% endwith %}
+      {% with field_id="nickname", field_name="nickname", required=True, label_text="あなたのニックネーム", field_type="text" %}
+        {% include 'components/form_field.html' %}
+      {% endwith %}
+      {# ゲームモード選択 #}
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-1"
+               for="game_mode">ゲームモード</label>
+        <select id="game_mode" name="game_mode" class="border border-gray-300 p-2 rounded w-full">
+          <option value="normal">通常モード</option>
+          <option value="thousand">合計1000文字モード</option>
+          <option value="ai_imposter">AIインポスター</option>
+        </select>
+      </div>
+
+      <button class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900" type="submit">
+        作成
+      </button>
+    </form>
+  {% endblock %}
+{% endblock %}

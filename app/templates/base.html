@@ -1,0 +1,23 @@
+{# templates/base.html #}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Zyare{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+  {% block head_extras %}{% endblock %}
+</head>
+<body class="bg-gray-100 min-h-screen">
+  {% if not hide_header %}
+    {% include 'components/header.html' %}
+  {% endif %}
+
+  <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
