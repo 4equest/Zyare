@@ -139,7 +139,7 @@ def join_room(room_id: int):
     real_pass = room.settings.get('room_password', None)
     if real_pass and real_pass != room_pass:
         flash('パスワードが違います。')
-        return redirect(url_for('room.join_room', room_id=room_id))
+        return redirect(url_for('room.room_detail', room_id=room_id))
 
     existing_player = Player.query.filter_by(user_id=current_user.id, room_id=room_id).first()
     if existing_player:
