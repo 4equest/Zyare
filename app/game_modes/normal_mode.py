@@ -12,7 +12,7 @@ class NormalGameMode(BaseGameMode):
     def is_game_over(room: Room) -> bool:
         """参加者数×ターン数で判断"""
         total_rounds = room.settings.get("total_rounds", 1)
-        expected_paragraphs = len(room.players) * total_rounds
+        expected_paragraphs = room.get_players_count() * total_rounds
         current_paragraphs = sum([len(note.contents) for note in room.notes])
         return current_paragraphs >= expected_paragraphs
 

@@ -14,7 +14,7 @@ class AIImposterGameMode(BaseGameMode):
     @staticmethod
     def is_game_over(room: Room) -> bool:
         """AIは人間数分のターンで終了"""
-        expected_paragraphs = len(room.players) * room.settings.get("total_rounds", 1)
+        expected_paragraphs = room.get_players_count(include_bots=True) * room.settings.get("total_rounds", 2)
         current_paragraphs = sum([len(note.contents) for note in room.notes])
         return current_paragraphs >= expected_paragraphs
 

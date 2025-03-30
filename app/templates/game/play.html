@@ -34,7 +34,7 @@
           <h4 class="text-sm font-medium text-gray-600 mb-2">前のプレイヤーの投稿</h4>
           <div id="previous-content" class="min-h-[500px] bg-gray-50 p-4 rounded">
             {% if previous_content %}
-              {{ previous_content.paragraph }}
+              {{ previous_content.paragraph|cr }}
             {% else %}
               <p class="text-gray-400 italic">まだ投稿がありません</p>
             {% endif %}
@@ -43,21 +43,36 @@
 
         <!-- 右側: 現在のプレイヤーの投稿フォーム -->
         <div class="flex flex-col">
-          <h4 class="text-sm font-medium text-gray-600 mb-2">あなたの投稿</h4>
+          <h4 class="text-sm font-medium text-gray-600 mb-2">
+            {% if game_state.is_bot_turn %}
+              AIのターン
+            {% else %}
+              あなたの投稿
+            {% endif %}
+          </h4>
           <div class="flex-1 flex flex-col">
-            <textarea 
-              id="paragraph-input"
-              class="flex-1 w-full border border-gray-300 rounded p-4 resize-none"
-              placeholder="ここに文章を入力してください..."
-            ></textarea>
-            <div class="flex justify-end mt-4">
-              <button 
-                onclick="submitParagraph()"
-                class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg"
-              >
-                投稿する
-              </button>
-            </div>
+            {% if game_state.is_bot_turn %}
+              <div class="min-h-[500px] bg-gray-50 p-4 rounded flex items-center justify-center">
+                <div class="text-center">
+                  <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p class="text-gray-600">あなたのかわりにAIが文章を生成中です...</p>
+                </div>
+              </div>
+            {% else %}
+              <textarea 
+                id="paragraph-input"
+                class="flex-1 w-full border border-gray-300 rounded p-4 resize-none"
+                placeholder="ここに文章を入力してください..."
+              ></textarea>
+              <div class="flex justify-end mt-4">
+                <button 
+                  onclick="submitParagraph()"
+                  class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg"
+                >
+                  投稿する
+                </button>
+              </div>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -71,7 +86,7 @@
       path: '/socket.io'
     });
     const roomId = {{ room.id }};
-    const noteId = {{ current_note.id }};
+    const noteId = {{ current_note.id if current_note else 'null' }};
     let hasSubmitted = false;
 
     // WebSocket接続

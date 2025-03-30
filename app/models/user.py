@@ -2,11 +2,11 @@ from app.extensions import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.utils.helper import random_hiragana
-
+from sqlalchemy.orm import Mapped
 class User(db.Model, UserMixin):
     id = db.Column(db.String(50), primary_key=True)
     password_hash = db.Column(db.String(128), nullable=False)
-    is_bot = db.Column(db.Boolean, default=False)  # BOTかどうかを示すフラグ
+    is_bot: Mapped[bool] = db.Column(db.Boolean, default=False)  # BOTかどうかを示すフラグ
 
     players = db.relationship("Player", backref="user", lazy=True)
 

@@ -6,43 +6,36 @@ from app.models.player import Player
 from app.models.note import Note
 from app.game_modes.base_mode import BaseGameMode
 from app.game_modes import get_game_mode_class
-from .websockets import broadcast_new_paragraph, broadcast_result
 from app.game_modes.normal_mode import NormalGameMode
 from app.game_modes.thousand_char_mode import ThousandCharGameMode
 from app.game_modes.ai_imposter_mode import AIImposterGameMode
 from app.blueprints.game.websockets import (
     broadcast_title_progress,
     broadcast_all_titles_set,
-    _broadcast_game_end
+    _broadcast_game_end,
+    broadcast_paragraph_progress,
+    broadcast_all_paragraphs_submitted
 )
 from app.utils.background_tasks import run_in_background, run_in_thread_pool
 
 game_bp = Blueprint('game', __name__)
 
-def generate_bot_paragraphs(room_id: int, current_turn: int, player_order: list, game_mode_class: AIImposterGameMode):
+def generate_bot_paragraphs(room_id: int, current_turn: int, game_mode_class: AIImposterGameMode):
     """BOTの文章生成をバックグラウンドで行う"""
     app = current_app._get_current_object()
     
+    @run_in_background(app)
     def generate_and_add_paragraph():
         """文章生成とノート追加を一つのタスクとして実行"""
-        # 新しいアプリケーションコンテキストを作成
-        with app.app_context():
-            # 新しいデータベースセッションを作成
-            session = db.create_scoped_session()
-            try:
-                current_player_id = player_order[current_turn]
-                current_player = session.query(Player).filter_by(user_id=current_player_id, room_id=room_id).first()
-                
-                if not current_player or not current_player.user.is_bot:
-                    return
-
-                room = session.query(Room).get(room_id)
-                if not room:
-                    return
-
-                # 現在のターンのノートを取得
-                for note in room.notes:
-                    if note.writers[current_turn] == str(current_player_id):
+        try:
+            room:Room = Room.query.get(room_id)
+            if not room:
+                return
+            players = room.players
+            # 現在のターンのノートを取得
+            for note in room.notes:
+                for player in players:
+                    if note.writers[current_turn] == player.user_id and player.user.is_bot:
                         # 前のプレイヤーの投稿を取得
                         previous_content = None
                         if note.contents and len(note.contents) > current_turn-1:
@@ -55,16 +48,28 @@ def generate_bot_paragraphs(room_id: int, current_turn: int, player_order: list,
                         )
                         
                         # 生成した文章をノートに追加
-                        note.add_content(current_player_id, new_paragraph)
-                        session.commit()
+                        note.add_content(player.user_id, new_paragraph)
+                        db.session.commit()
                         
-                        # WebSocketで新しい段落を通知（メインスレッドで実行）
-                        app.after_request(lambda: broadcast_new_paragraph(room_id, note.id, new_paragraph))
-            finally:
-                session.close()
+                        # WebSocketで新しい段落を通知
+                        completed_count = room.written_paragraphs_count()
+                        total_players = room.get_players_count(include_bots=False)
+                        
+                        broadcast_paragraph_progress(room_id, completed_count, total_players)
+
+                        # 全員がパラグラフを投稿したら次のターンへ
+                        if completed_count == total_players:
+                            broadcast_all_paragraphs_submitted(room_id)
+            
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f"Error in generate_and_add_paragraph: {str(e)}")
+            raise
+        finally:
+            db.session.close()
     
-    # スレッドプールで文章生成とノート追加を実行
-    run_in_thread_pool(generate_and_add_paragraph)
+    # バックグラウンドで文章生成とノート追加を実行
+    generate_and_add_paragraph()
 
 @game_bp.route('/set_title/<int:room_id>', methods=['GET'])
 @login_required
@@ -94,7 +99,7 @@ def set_title_page(room_id: int):
                          room=room,
                          current_title=player_note.title or '',
                          completed_count=room.written_titles_count(),
-                         total_players=len(room.players))
+                         total_players=room.get_players_count(include_bots=False))
 
 @game_bp.route('/play/<int:room_id>', methods=['GET', 'POST'])
 @login_required
@@ -119,48 +124,51 @@ def play(room_id: int):
         return redirect(url_for('game.result', room_id=room_id))
 
     completed_count = room.written_paragraphs_count()
-    total_players = len(room.players)
+    total_players = room.get_players_count(include_bots=False)
 
     # 全員がパラグラフを投稿したら次のターンへ
     if completed_count == total_players:
         room.advance_turn()
         db.session.commit()
 
-        # AIインポスターモードの場合、BOTの文章を自動生成
-        if isinstance(game_mode_class, AIImposterGameMode):
-            current_turn = room.settings.get('current_turn', 0)
-            player_order = room.settings.get('player_order', [])
-            
-            # バックグラウンドでBOTの文章生成を実行
-            generate_bot_paragraphs(room_id, current_turn, player_order, game_mode_class)
 
     # 現在のターンのノートを取得
     current_turn = room.settings.get('current_turn', 0)
     player_order = room.settings.get('player_order', [])
     current_player_id = current_user.id
     
+    if room.settings.get('bot_turn', 0) == current_turn:
+        if room.settings.get("game_mode", "normal") == "ai_imposter":
+            new_settings = room.settings.copy()
+            new_settings["bot_turn"] = current_turn + 1
+            room.settings = None
+            db.session.flush()
+            room.settings = new_settings
+            db.session.commit()
+            generate_bot_paragraphs(room_id, current_turn, game_mode_class)
+
+    
     # 現在のプレイヤーのノートを取得
     current_note = None
+    is_bot_turn = True
+    previous_content = None
     for note in room.notes:
         if note.writers[current_turn] == str(current_player_id):
             current_note = note
+            is_bot_turn = False
+            # 前のプレイヤーの投稿を取得
+            if current_note.contents and len(current_note.contents) > current_turn-1:
+                previous_content = current_note.contents[current_turn-1]
             break
-    if not current_note:
-        flash('ノートが見つかりません。')
-        return redirect(url_for('room.room_detail', room_id=room_id))
-
-    # 前のプレイヤーの投稿を取得
-    previous_content = None
-    if current_note.contents and len(current_note.contents) > current_turn-1:
-        previous_content = current_note.contents[current_turn-1]
 
     # ゲーム状態を取得
     game_state = {
         'status': 'playing',
         'current_turn': current_turn,
         'player_order': player_order,
-        'total_players': len(room.players),
-        'completed_count': room.written_paragraphs_count()
+        'total_players': room.get_players_count(include_bots=False),
+        'completed_count': room.written_paragraphs_count(),
+        'is_bot_turn': is_bot_turn
     }
 
     return render_template('game/play.html',

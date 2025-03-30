@@ -39,5 +39,5 @@ def create_app():
         from app.models import User, Player, Room, Note
         db.create_all()  # テーブル作成
         # BOTユーザーの初期化
-        User.initialize_bots()
+        User.initialize_bots()  # 一時的にコメントアウト
     return app

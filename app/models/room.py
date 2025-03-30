@@ -112,3 +112,10 @@ class Room(db.Model):
             for paragraphs in visibility_state.values()
         )
 
+    def get_players_count(self, include_bots: bool = False) -> int:
+        """プレイヤー数を取得"""
+        count = 0
+        for player in self.players:
+            if include_bots or not player.user.is_bot:
+                count += 1
+        return count

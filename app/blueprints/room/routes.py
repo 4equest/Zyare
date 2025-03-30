@@ -52,7 +52,8 @@ def create_room():
         settings_data = {
             "room_password": room_password,
             "game_mode": chosen_game_mode,
-            "bot_count": bot_count
+            "bot_count": bot_count,
+            "bot_turn": 0
         }
         room = Room(
             name=room_name,
@@ -188,22 +189,21 @@ def start_game(room_id: int):
         non_bot_players = [p for p in players if not p.user.is_bot]
         
         # まず、各ノートのwritersを設定
-        for p in non_bot_players:
+        for i,p in enumerate(non_bot_players):
             new_note = Note(room_id=room.id, contents=[], writers=[])
             # プレイヤー順序を3周分用意（オフセットを含むため）
             order_three_times = new_settings["player_order"] * 3
-            # 現在のプレイヤーpのuser_idの開始位置を取得
-            try:
-                start_index = new_settings["player_order"].index(p.user_id)
-            except ValueError:
-                continue  # 万が一含まれていなければスキップ
+
+            start_index = i
+
             # 2周分（全体の2倍の長さ）のユーザーIDを連続で選択
             selected_ids = order_three_times[start_index:start_index + 2 * len(new_settings["player_order"])]
             # 選択した順番で対応するPlayerオブジェクトをnew_note.writersに追加
             for uid in selected_ids:
                 new_note.writers.append(uid)
             db.session.add(new_note)
-        
+            
+        db.session.commit()
         # 次に、タイトルを決めるプレイヤーをランダムに選択して設定
         title_setters = non_bot_players.copy()
         random.shuffle(title_setters)

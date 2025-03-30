@@ -9,17 +9,6 @@ from app.models.note import Note
 from app.models.player import Player
 from app.game_modes import get_game_mode_class
 
-def broadcast_new_paragraph(room_id: int, writer_id: str, paragraph: str) -> None:
-    """
-    サーバー内から呼び出し:
-    - 新規パラグラフ追加後、同じWSルーム("room_{room_id}")へ通知
-    """
-    payload = {
-        'writer_id': writer_id,
-        'paragraph': paragraph
-    }
-    socketio.emit('new_paragraph', payload, room=f'room_{room_id}')
-
 def broadcast_result(room_id: int, result_data: dict) -> None:
     """
     ゲーム終了時や結果集計時にリアルタイムでresultページへ送信
@@ -113,7 +102,7 @@ def init_websocket(socketio):
             return
 
         join_room(f'room_{room_id}')
-        broadcast_title_progress(room_id, room.written_titles_count(), len(room.players))
+        broadcast_title_progress(room_id, room.written_titles_count(), room.get_players_count(include_bots=False))
         
     @socketio.on('set_title', namespace='/ws/game')
     def handle_set_title(data):
@@ -126,8 +115,7 @@ def init_websocket(socketio):
             return
         
         # ノートを取得してタイトルを設定
-        notes = Note.query.filter_by(room_id=room_id).all()
-        note = next((n for n in notes if n.writers and n.writers[0] == str(current_user.id)), None)
+        note = Note.query.filter_by(room_id=room_id, title_setter_player_id=current_user.id).first()
         if note:
             room = Room.query.get(room_id)
             note.title = title
@@ -136,7 +124,7 @@ def init_websocket(socketio):
 
             # 進捗状況を取得して通知
             completed_count = room.written_titles_count()
-            total_players = len(room.players)
+            total_players = room.get_players_count(include_bots=False)
             
             broadcast_title_progress(room_id, completed_count, total_players)
 
@@ -239,7 +227,6 @@ def init_websocket(socketio):
             emit('error', {'message': '文字数制限を超えています'})
             return
 
-        paragraph = paragraph.replace('\n', '<br>')
         current_turn = room.settings.get('current_turn', 0)
         
         # 既存のパラグラフがある場合は更新
@@ -260,7 +247,7 @@ def init_websocket(socketio):
 
         # 進捗状況を取得して通知
         completed_count = room.written_paragraphs_count()
-        total_players = len(room.players)
+        total_players = room.get_players_count(include_bots=False)
         
         broadcast_paragraph_progress(room_id, completed_count, total_players)
 
