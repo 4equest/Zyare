@@ -152,6 +152,8 @@
   const isCreator = {% if room.creator_id == current_user.id %}true{% else %}false{% endif %};
   let visibilityState = {{ visibility_state|tojson }};
   let currentNoteId = null;
+  let audioContext = null;
+  let audioBuffers = new Map();
 
   // WebSocket接続
   socket.emit('subscribe_result', { room_id: roomId });
@@ -185,6 +187,38 @@
     window.open(data.redirect_url, '_blank');
   });
 
+  // 音声を再生する
+  async function playAudio(noteId, turn) {
+    try {
+      // AudioContextの初期化
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      // 音声バッファのキャッシュキー
+      const cacheKey = `${noteId}_${turn}`;
+
+      // キャッシュにない場合は音声を取得
+      if (!audioBuffers.has(cacheKey)) {
+        const response = await fetch(`/game/audio/${roomId}/${noteId}/${turn}`);
+        if (!response.ok) return;
+
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        audioBuffers.set(cacheKey, audioBuffer);
+      }
+
+      // 音声を再生
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffers.get(cacheKey);
+      source.connect(audioContext.destination);
+      source.start(0);
+
+    } catch (error) {
+      console.error('音声再生エラー:', error);
+    }
+  }
+
   // 表示状態を更新
   function updateVisibility(newVisibilityState) {
     visibilityState = newVisibilityState;
@@ -196,6 +230,8 @@
         if (paragraph) {
           if (visible) {
             paragraph.classList.remove('hidden');
+            // パラグラフが表示されたら音声を再生
+            playAudio(noteId, parseInt(index));
           } else {
             paragraph.classList.add('hidden');
           }

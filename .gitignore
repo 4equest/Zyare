@@ -13,6 +13,7 @@ wheels/
 .cursor/
 .cursor
 
+instance/*
 *.db
 memo.txt
 .env

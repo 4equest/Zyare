@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, abort, flash, jsonify, current_app
+from flask import Blueprint, render_template, redirect, url_for, request, abort, flash, jsonify, current_app, send_file
 from flask_login import login_required, current_user
 from app.extensions import db
 from app.models.room import Room, RoomStatus
@@ -18,6 +18,9 @@ from app.blueprints.game.websockets import (
     broadcast_all_paragraphs_submitted
 )
 from app.utils.background_tasks import run_in_background, run_in_thread_pool
+from app.audio.factory import create_synthesizer
+import os
+from pathlib import Path
 
 game_bp = Blueprint('game', __name__)
 
@@ -71,6 +74,36 @@ def generate_bot_paragraphs(room_id: int, current_turn: int, game_mode_class: AI
     
     # バックグラウンドで文章生成とノート追加を実行
     generate_and_add_paragraph()
+
+def generate_audio_for_previous_turn(room_id: int, previous_turn: int):
+    """前のターンの音声を生成する"""
+    app = current_app._get_current_object()
+    
+    @run_in_background(app)
+    def generate_audio():
+        try:
+            room = Room.query.get(room_id)
+            if not room:
+                return
+            
+            synthesizer = create_synthesizer()
+            
+            # 各ノートの前のターンのパラグラフを音声化
+            for note in room.notes:
+                if note.contents and len(note.contents) > previous_turn:
+                    content = note.contents[previous_turn]
+                    audio_data = synthesizer.synthesize(content["paragraph"])
+                    if audio_data:
+                        synthesizer.save_audio(audio_data, room_id, note.id, previous_turn)
+            
+            db.session.close()
+            
+        except Exception as e:
+            app.logger.error(f"音声生成エラー: {str(e)}")
+            db.session.rollback()
+            db.session.close()
+    
+    generate_audio()
 
 @game_bp.route('/set_title/<int:room_id>', methods=['GET'])
 @login_required
@@ -135,9 +168,12 @@ def play(room_id: int):
 
     # 全員がパラグラフを投稿したら次のターンへ
     if completed_count == total_players:
+        # 前のターンの音声を生成
+        current_turn = room.settings.get('current_turn', 0)
+        generate_audio_for_previous_turn(room_id, current_turn)
+        
         room.advance_turn()
         db.session.commit()
-
 
     # 現在のターンのノートを取得
     current_turn = room.settings.get('current_turn', 0)
@@ -271,3 +307,23 @@ def vote_result(room_id):
     players.sort(key=lambda x: x['vote_count'], reverse=True)
 
     return render_template('game/vote_result.html', room=room, players=players)
+
+@game_bp.route('/audio/<int:room_id>/<int:note_id>/<int:turn>')
+@login_required
+def get_audio(room_id: int, note_id: int, turn: int):
+    """音声ファイルを取得する"""
+    # ルームの存在確認
+    room = Room.query.get_or_404(room_id)
+    
+    # 参加者かどうか確認
+    if not any(p.user_id == current_user.id for p in room.players):
+        abort(403)
+    
+    # 音声ファイルのパスを生成
+    audio_path = Path(f"instance/audio/{room_id}/{note_id}_{turn}.mp3")
+    
+    # ファイルが存在しない場合は404
+    if not audio_path.exists():
+        abort(404)
+    
+    return send_file(audio_path, mimetype='audio/mpeg')
