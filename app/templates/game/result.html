@@ -30,34 +30,50 @@
           ノート {{ loop.index }}
         </button>
       {% endfor %}
+
+      {% if room.settings.get('game_mode') == 'ai_imposter' %}
+        <button 
+          id="vote-button"
+          class="w-full text-left px-4 py-2 rounded-lg transition-colors hidden"
+          onclick="showVote()"
+        >
+          投票
+        </button>
+      {% endif %}
     </div>
   </div>
 
   <!-- メインコンテンツ -->
   <div class="flex-1 p-8">
-    {% for note in notes %}
-      {% set note_id = note.id|string %}
-      {% set is_first = loop.first %}
-      {% set is_visible = visibility_state[note_id]['0']|default(false) %}
-      <div 
-        id="note-content-{{ note.id }}"
-        class="{% if not is_first %}hidden{% endif %}"
-      >
-        <h3 class="text-2xl font-bold mb-6">{{ note.title }}</h3>
-        <div class="space-y-6">
-          {% for content in note.contents %}
-            {% set is_visible = visibility_state[note_id][loop.index0|string]|default(false) %}
-            <div 
-              id="paragraph-{{ note.id }}-{{ loop.index0 }}"
-              class="{% if not is_visible %}hidden{% endif %} bg-white/70 backdrop-blur-md p-6 rounded-lg shadow-sm"
-            >
-              <div class="text-sm text-gray-600 mb-2">プレイヤー {{ room.players|selectattr('user_id', 'equalto', content.writer_id)|map(attribute='nickname')|first }}</div>
-              <div class="text-lg">{{ content.paragraph }}</div>
-            </div>
-          {% endfor %}
+    <div id="notes-content">
+      {% for note in notes %}
+        {% set note_id = note.id|string %}
+        {% set is_first = loop.first %}
+        {% set is_visible = visibility_state[note_id]['0']|default(false) %}
+        <div 
+          id="note-content-{{ note.id }}"
+          class="{% if not is_first %}hidden{% endif %}"
+        >
+          <h3 class="text-2xl font-bold mb-6">{{ note.title }}</h3>
+          <div class="space-y-6">
+            {% for content in note.contents %}
+              {% set is_visible = visibility_state[note_id][loop.index0|string]|default(false) %}
+              <div 
+                id="paragraph-{{ note.id }}-{{ loop.index0 }}"
+                class="{% if not is_visible %}hidden{% endif %} bg-white/70 backdrop-blur-md p-6 rounded-lg shadow-sm"
+              >
+                <div class="text-sm text-gray-600 mb-2">プレイヤー {{ room.players|selectattr('user_id', 'equalto', content.writer_id)|map(attribute='nickname')|first }}</div>
+                <div class="text-lg">{{ content.paragraph }}</div>
+              </div>
+            {% endfor %}
+          </div>
         </div>
-      </div>
-    {% endfor %}
+      {% endfor %}
+    </div>
+
+    <div id="vote-content" class="hidden">
+      {% include 'game/vote.html' %}
+    </div>
 
     <!-- 次のノートを表示ボタン -->
     <div id="next-note-button" class="hidden mt-8">
@@ -68,6 +84,18 @@
         次のノートを表示
       </button>
     </div>
+
+    <!-- 投票開始ボタン（ルーム作成者のみ表示） -->
+    {% if room.creator_id == current_user.id and room.settings.get('game_mode') == 'ai_imposter' %}
+      <div id="start-vote-button" class="hidden mt-8">
+        <button 
+          onclick="startVote()"
+          class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+        >
+          投票を開始
+        </button>
+      </div>
+    {% endif %}
   </div>
 
   <!-- 次へボタン（ルーム作成者のみ表示） -->
@@ -117,8 +145,22 @@
     showNote(nextNoteId);
   });
 
-  // ゲーム終了イベントを受信
-  socket.on('game_ended', (data) => {
+  // 投票開始を受信
+  socket.on('vote_started', () => {
+    document.getElementById('vote-button').classList.remove('hidden');
+    if (isCreator) {
+      document.getElementById('start-vote-button').classList.add('hidden');
+    }
+  });
+
+   // ゲーム終了イベントを受信
+   socket.on('game_ended', (data) => {
+    window.location.href = data.redirect_url;
+   });
+
+
+  // 投票終了を受信
+  socket.on('vote_ended', (data) => {
     window.location.href = data.redirect_url;
   });
 
@@ -159,6 +201,8 @@
     checkNextNoteButton();
     // 終了ボタンの表示判定
     checkEndGameButton();
+    // 投票開始ボタンの表示判定
+    checkStartVoteButton();
   }
 
   // ノートを表示
@@ -169,6 +213,8 @@
     });
     // 選択されたノートを表示
     document.getElementById(`note-content-${noteId}`).classList.remove('hidden');
+    // 投票コンテンツを非表示
+    document.getElementById('vote-content').classList.add('hidden');
 
     // ボタンのスタイルを更新
     document.querySelectorAll('[id^="note-button-"]').forEach(button => {
@@ -182,6 +228,32 @@
     }
 
     currentNoteId = noteId;
+  }
+
+  // 投票を表示
+  function showVote() {
+    // 全てのノートコンテンツを非表示
+    document.querySelectorAll('[id^="note-content-"]').forEach(el => {
+      el.classList.add('hidden');
+    });
+    // 投票コンテンツを表示
+    document.getElementById('vote-content').classList.remove('hidden');
+
+    // ボタンのスタイルを更新
+    document.querySelectorAll('[id^="note-button-"]').forEach(button => {
+      button.classList.remove('bg-blue-100', 'text-blue-800');
+      button.classList.add('hover:bg-gray-100');
+    });
+    const voteButton = document.getElementById('vote-button');
+    if (voteButton) {
+      voteButton.classList.remove('hover:bg-gray-100');
+      voteButton.classList.add('bg-blue-100', 'text-blue-800');
+    }
+  }
+
+  // 投票を開始
+  function startVote() {
+    socket.emit('start_vote', { room_id: roomId });
   }
 
   // 次のノートボタンの表示判定
@@ -209,6 +281,17 @@
       return Object.values(paragraphs).every(visible => visible);
     });
     endGameButton.classList.toggle('hidden', !allParagraphsVisible);
+  }
+
+  // 投票開始ボタンの表示判定
+  function checkStartVoteButton() {
+    const startVoteButton = document.getElementById('start-vote-button');
+    if (!startVoteButton) return;
+
+    const allParagraphsVisible = Object.entries(visibilityState).every(([noteId, paragraphs]) => {
+      return Object.values(paragraphs).every(visible => visible);
+    });
+    startVoteButton.classList.toggle('hidden', !allParagraphsVisible);
   }
 
   // 次のノートを表示

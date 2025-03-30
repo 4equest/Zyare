@@ -22,6 +22,8 @@ class Room(db.Model):
     )
     
     settings = db.Column(JSON, default={})
+    
+    vote_results = db.Column(JSON, default={})
     from app.models.player import Player
     from app.models.note import Note
     players:Mapped[List[Player]] = db.relationship("Player", backref="room", lazy=True)

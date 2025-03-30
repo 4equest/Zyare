@@ -4,6 +4,7 @@ from app.extensions import db
 from app.models.room import Room, RoomStatus
 from app.models.player import Player
 from app.models.note import Note
+from app.models.vote import Vote
 from app.game_modes.base_mode import BaseGameMode
 from app.game_modes import get_game_mode_class
 from app.game_modes.normal_mode import NormalGameMode
@@ -228,3 +229,39 @@ def result(room_id: int):
                          notes=room.notes, 
                          results=results_data,
                          visibility_state=visibility_state)
+
+@game_bp.route('/vote_result/<int:room_id>')
+@login_required
+def vote_result(room_id):
+    room:Room = Room.query.get_or_404(room_id)
+
+    # 投票結果を取得
+    vote_counts = room.vote_results or {}
+    votes = Vote.query.filter_by(room_id=room_id).all()
+
+    # プレイヤーごとの投票者を集計
+    voters = {}
+    for vote in votes:
+        for vote_target in [vote.vote1, vote.vote2]:
+            if vote_target not in voters:
+                voters[vote_target] = []
+            voter = next((p for p in room.players if p.user_id == vote.voter_id), None)
+            if voter:
+                voters[vote_target].append(voter.nickname)
+
+    # プレイヤー情報を取得
+    players = []
+    for player in room.players:
+        player_info = {
+            'nickname': player.nickname,
+            'user_id': player.user_id,
+            'is_bot': player.user.is_bot,
+            'vote_count': vote_counts.get(player.user_id, 0),
+            'voters': voters.get(player.user_id, [])
+        }
+        players.append(player_info)
+
+    # 投票数でソート
+    players.sort(key=lambda x: x['vote_count'], reverse=True)
+
+    return render_template('game/vote_result.html', room=room, players=players)

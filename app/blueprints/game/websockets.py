@@ -1,13 +1,14 @@
 # app/blueprints/game/websockets.py
 from datetime import datetime
 from flask_socketio import emit, join_room
-from flask import request
+from flask import request, url_for
 from flask_login import current_user
 from app.extensions import socketio, db
 from app.models.room import Room, RoomStatus
 from app.models.note import Note
 from app.models.player import Player
 from app.game_modes import get_game_mode_class
+from app.models.vote import Vote
 
 def broadcast_result(room_id: int, result_data: dict) -> None:
     """
@@ -85,6 +86,14 @@ def broadcast_show_next_note(room_id: int, next_note_id: int):
         'room_id': room_id,
         'next_note_id': next_note_id
     }, room=f'room_{room_id}', namespace='/ws/game')
+
+def broadcast_vote_start(room_id: int):
+    """投票開始を通知"""
+    emit('vote_started', room=f'room_{room_id}', namespace='/ws/game')
+
+def broadcast_vote_end(room_id: int, redirect_url: str):
+    """投票終了を通知"""
+    emit('vote_ended', {'redirect_url': redirect_url}, room=f'room_{room_id}', namespace='/ws/game')
 
 def init_websocket(socketio):
     @socketio.on('join', namespace='/ws/game')
@@ -353,5 +362,63 @@ def init_websocket(socketio):
 
         # 次のノートを表示するように通知
         broadcast_show_next_note(room_id, next_note_id)
+
+    @socketio.on('start_vote', namespace='/ws/game')
+    def handle_start_vote(data):
+        room_id = data.get('room_id')
+        if not room_id:
+            return
+
+        room:Room = Room.query.get_or_404(room_id)
+        if not room.status == RoomStatus.PLAYING:
+            return
+
+        # 全てのノートが表示されているか確認
+        if not room.is_all_paragraphs_visible():
+            return
+
+        # 投票を開始
+        broadcast_vote_start(room_id)
+
+    @socketio.on('submit_vote', namespace='/ws/game')
+    def handle_submit_vote(data):
+        room_id = data.get('room_id')
+        vote1 = data.get('vote1')
+        vote2 = data.get('vote2')
+        if not all([room_id, vote1, vote2]):
+            return
+
+        room:Room = Room.query.get_or_404(room_id)
+        if not room.status == RoomStatus.PLAYING:
+            return
+
+        # 投票を保存
+        vote = Vote(
+            room_id=room_id,
+            voter_id=current_user.id,
+            vote1=vote1,
+            vote2=vote2
+        )
+        db.session.add(vote)
+        db.session.commit()
+
+        # 全プレイヤーが投票したか確認
+        non_bot_players = [p for p in room.players if not p.user.is_bot]
+        votes = Vote.query.filter_by(room_id=room_id).all()
+        voted_users = {v.voter_id for v in votes}
+
+        if all(p.user_id in voted_users for p in non_bot_players):
+            # 投票結果を集計
+            vote_counts = {}
+            for v in votes:
+                vote_counts[v.vote1] = vote_counts.get(v.vote1, 0) + 1
+                vote_counts[v.vote2] = vote_counts.get(v.vote2, 0) + 1
+
+            # 投票結果を保存
+            room.vote_results = vote_counts
+            db.session.commit()
+
+            # 投票結果ページにリダイレクト
+            broadcast_vote_end(room_id, url_for('game.vote_result', room_id=room_id))
 
 
