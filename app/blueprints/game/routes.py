@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, abort, flash, jsonify
+from flask import Blueprint, render_template, redirect, url_for, request, abort, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from app.extensions import db
 from app.models.room import Room, RoomStatus
@@ -15,8 +15,56 @@ from app.blueprints.game.websockets import (
     broadcast_all_titles_set,
     _broadcast_game_end
 )
+from app.utils.background_tasks import run_in_background, run_in_thread_pool
 
 game_bp = Blueprint('game', __name__)
+
+def generate_bot_paragraphs(room_id: int, current_turn: int, player_order: list, game_mode_class: AIImposterGameMode):
+    """BOTの文章生成をバックグラウンドで行う"""
+    app = current_app._get_current_object()
+    
+    def generate_and_add_paragraph():
+        """文章生成とノート追加を一つのタスクとして実行"""
+        # 新しいアプリケーションコンテキストを作成
+        with app.app_context():
+            # 新しいデータベースセッションを作成
+            session = db.create_scoped_session()
+            try:
+                current_player_id = player_order[current_turn]
+                current_player = session.query(Player).filter_by(user_id=current_player_id, room_id=room_id).first()
+                
+                if not current_player or not current_player.user.is_bot:
+                    return
+
+                room = session.query(Room).get(room_id)
+                if not room:
+                    return
+
+                # 現在のターンのノートを取得
+                for note in room.notes:
+                    if note.writers[current_turn] == str(current_player_id):
+                        # 前のプレイヤーの投稿を取得
+                        previous_content = None
+                        if note.contents and len(note.contents) > current_turn-1:
+                            previous_content = note.contents[current_turn-1]
+
+                        # BOTの文章を生成
+                        new_paragraph = game_mode_class.ai_generate_paragraph(
+                            note.title,
+                            previous_content["paragraph"] if previous_content else "あなたは最初の書き手なので、前の文章は存在しません。タイトルから物語の始まりを書いてください。"
+                        )
+                        
+                        # 生成した文章をノートに追加
+                        note.add_content(current_player_id, new_paragraph)
+                        session.commit()
+                        
+                        # WebSocketで新しい段落を通知（メインスレッドで実行）
+                        app.after_request(lambda: broadcast_new_paragraph(room_id, note.id, new_paragraph))
+            finally:
+                session.close()
+    
+    # スレッドプールで文章生成とノート追加を実行
+    run_in_thread_pool(generate_and_add_paragraph)
 
 @game_bp.route('/set_title/<int:room_id>', methods=['GET'])
 @login_required
@@ -77,6 +125,14 @@ def play(room_id: int):
     if completed_count == total_players:
         room.advance_turn()
         db.session.commit()
+
+        # AIインポスターモードの場合、BOTの文章を自動生成
+        if isinstance(game_mode_class, AIImposterGameMode):
+            current_turn = room.settings.get('current_turn', 0)
+            player_order = room.settings.get('player_order', [])
+            
+            # バックグラウンドでBOTの文章生成を実行
+            generate_bot_paragraphs(room_id, current_turn, player_order, game_mode_class)
 
     # 現在のターンのノートを取得
     current_turn = room.settings.get('current_turn', 0)
