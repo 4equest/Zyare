@@ -18,6 +18,20 @@
       background-attachment: fixed;
     }
 
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .animate-slide-in {
+      animation: slideIn 0.3s ease-out;
+    }
   </style>
   {% block head_extras %}{% endblock %}
 </head>
@@ -25,6 +39,23 @@
   {% if not hide_header %}
     {% include 'components/header.html' %}
   {% endif %}
+
+  <div class="fixed top-20 right-4 z-50 flex flex-col space-y-2" id="toast-container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="animate-slide-in bg-white opacity-80 backdrop-filter backdrop-blur-md border border-gray-200 rounded-lg p-4 min-w-[300px] max-w-[400px] flex justify-between items-start shadow-lg" data-category="{{ category }}">
+            <div class="flex-grow mr-4">{{ message }}</div>
+            <button class="text-gray-500 hover:bg-gray-100 opacity-50 p-1 rounded transition-colors duration-200" onclick="this.parentElement.remove()">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
 
   <main class="relative z-10 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 min-h-svh p-4 w-screen">
     {% block content %}{% endblock %}
