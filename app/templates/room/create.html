@@ -65,13 +65,16 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const gameModeSelect = document.getElementById('game_mode');
+    const nicknameInput = document.getElementById('nickname');
     const botCountContainer = document.getElementById('bot_count_container');
 
     function toggleBotCount() {
       if (gameModeSelect.value === 'ai_imposter') {
         botCountContainer.classList.remove('hidden');
+        nicknameInput.setAttribute('disabled', 'disabled');
       } else {
         botCountContainer.classList.add('hidden');
+        nicknameInput.removeAttribute('disabled');
       }
     }
 

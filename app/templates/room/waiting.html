@@ -23,7 +23,15 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
                 <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span class="text-gray-700">{{ p.nickname }}</span>
+                <span class="text-gray-700">
+                  {% if p.user_id == current_user.id %}
+                    {{ p.nickname }}
+                  {% elif room.settings.get('game_mode') != 'ai_imposter' %}
+                    {{ p.nickname }}
+                  {% else %}
+                    参加者
+                  {% endif %}
+                </span>
               </div>
               {% if p.user_id == room.creator_id %}
                 <span class="text-sm bg-purple-100/50 text-purple-700 px-2 py-1 rounded-full backdrop-blur-sm border border-purple-200/50">
@@ -180,7 +188,13 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
                 <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span class="text-gray-700">${player.nickname}</span>
+                <span class="text-gray-700">
+                  ${player.user_id === "{{ current_user.id }}" 
+                    ? player.nickname 
+                    : "{{ room.settings.get('game_mode') }}" !== 'ai_imposter' 
+                      ? player.nickname 
+                      : '参加者'}
+                </span>
               </div>
               ${player.user_id === "{{ room.creator_id }}" 
                 ? '<span class="text-sm bg-purple-100/50 text-purple-700 px-2 py-1 rounded-full backdrop-blur-sm border border-purple-200/50">ルーム作者</span>'

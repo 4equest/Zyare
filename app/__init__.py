@@ -4,6 +4,7 @@ import os
 from flask import Flask
 from config import Config
 from app.extensions import db, migrate, login_manager, socketio
+from app.utils import init_app as init_utils
 
 def create_app():
     app = Flask(__name__,
@@ -34,6 +35,9 @@ def create_app():
 
     room_init_websocket(socketio)
     game_init_websocket(socketio)
+
+    # ユーティリティの初期化
+    init_utils(app)
 
     with app.app_context():
         from app.models import User, Player, Room, Note

@@ -23,7 +23,12 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
                 <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span class="text-gray-700">{{ p.nickname }}</span>
+                <span class="text-gray-700">
+                  {%if room.settings.get('game_mode') != 'ai_imposter' %}
+                  {{ p.nickname }}
+                  {% else %}
+                  参加者
+                  {% endif %}</span>
               </div>
             </div>
           </div>
@@ -82,9 +87,11 @@
         </div>
 
         <form action="{{ url_for('room.join_room', room_id=room.id) }}" method="POST" class="space-y-6">
-          {% with field_id="nickname", field_name="nickname", field_type="text", label_text="ニックネーム", placeholder="表示名を入力", required=true %}
-            {% include 'components/form_field.html' %}
-          {% endwith %}
+          {% if room.settings.get('game_mode') != 'ai_imposter' %}
+            {% with field_id="nickname", field_name="nickname", field_type="text", label_text="ニックネーム", placeholder="表示名を入力", required=true %}
+              {% include 'components/form_field.html' %}
+            {% endwith %}
+          {% endif %}
 
           {% if room.settings.room_password %}
             {% with field_id="room_password", field_name="room_password", field_type="password", label_text="ルームパスワード", placeholder="パスワードを入力", required=true %}

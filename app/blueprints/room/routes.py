@@ -44,11 +44,16 @@ def create_room():
     """新規ルーム作成フォーム"""
     if request.method == 'POST':
         room_name = request.form['room_name']
-        nickname = request.form['nickname']
         room_password = request.form.get('room_password', '')
         chosen_game_mode = request.form.get('game_mode', 'normal')
         bot_count = int(request.form.get('bot_count', 0)) if chosen_game_mode == 'ai_imposter' else 0
 
+        # AIインポスターモードの場合は、ランダムなひらがなをニックネームとして使用
+        if chosen_game_mode == 'ai_imposter':
+            nickname = random_hiragana(4)
+        else:
+            nickname = request.form['nickname']
+            
         settings_data = {
             "room_password": room_password,
             "game_mode": chosen_game_mode,
@@ -128,9 +133,7 @@ def join_room(room_id: int):
         flash('ゲームが開始されているか、このルームは参加不可です。')
         return redirect(url_for('room.room_list'))
 
-    nickname = request.form['nickname']
     room_pass = request.form.get('room_password', '')
-
     real_pass = room.settings.get('room_password', None)
     if real_pass and real_pass != room_pass:
         flash('パスワードが違います。')
@@ -140,6 +143,12 @@ def join_room(room_id: int):
     if existing_player:
         flash('すでに参加しています。')
         return redirect(url_for('room.waiting', room_id=room_id))
+
+    # AIインポスターモードの場合は、ランダムなひらがなをニックネームとして使用
+    if room.settings.get('game_mode') == 'ai_imposter':
+        nickname = random_hiragana(4)
+    else:
+        nickname = request.form['nickname']
 
     player = Player(user_id=current_user.id, room_id=room_id, nickname=nickname)
     db.session.add(player)
