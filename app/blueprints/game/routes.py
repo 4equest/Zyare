@@ -5,6 +5,7 @@ from app.models.room import Room, RoomStatus
 from app.models.player import Player
 from app.models.note import Note
 from app.game_modes.base_mode import BaseGameMode
+from app.game_modes import get_game_mode_class
 from .websockets import broadcast_new_paragraph, broadcast_result
 from app.game_modes.normal_mode import NormalGameMode
 from app.game_modes.thousand_char_mode import ThousandCharGameMode
@@ -57,9 +58,16 @@ def play(room_id: int):
     if room.status != RoomStatus.PLAYING:
         flash('ゲームが開始されていません。')
         return redirect(url_for('room.room_detail', room_id=room_id))
+
+    # ゲームモードの取得
+    game_mode_class = get_game_mode_class(room)
+    
+    # ゲーム終了チェック
+    if game_mode_class.is_game_over(room):
+        return redirect(url_for('game.result', room_id=room_id))
+
     completed_count = room.written_paragraphs_count()
     total_players = len(room.players)
-    
 
     # 全員がパラグラフを投稿したら次のターンへ
     if completed_count == total_players:
@@ -94,10 +102,6 @@ def play(room_id: int):
         'total_players': len(room.players),
         'completed_count': room.written_paragraphs_count()
     }
-
-    # 全ターンが終了している場合は結果ページへリダイレクト
-    if current_turn >= len(room.players):
-        return redirect(url_for('game.result', room_id=room_id))
 
     return render_template('game/play.html',
                          room=room,
@@ -141,8 +145,8 @@ def result(room_id: int):
         flash('参加者のみ結果を閲覧可能です。')
         return redirect(url_for('room.room_detail', room_id=room_id))
 
-    game_mode = get_game_mode_instance(room)
-    results_data = game_mode.calculate_results()
+    game_mode_class = get_game_mode_class(room)
+    results_data = game_mode_class.calculate_results(room)
 
     # 表示状態を取得または初期化
     visibility_state = room.get_visibility_state()
@@ -156,16 +160,3 @@ def result(room_id: int):
                          notes=room.notes, 
                          results=results_data,
                          visibility_state=visibility_state)
-
-def get_game_mode_instance(room: Room) -> BaseGameMode:
-    """
-    ルームのsettings["game_mode"] を見て、対応するGameModeクラスを返す。
-    デフォルトは NormalGameMode とする。
-    """
-    mode_name = room.settings.get("game_mode", "normal")
-    if mode_name == "thousand":
-        return ThousandCharGameMode(room)
-    elif mode_name == "ai_imposter":
-        return AIImposterGameMode(room)
-    else:
-        return NormalGameMode(room)

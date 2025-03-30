@@ -6,6 +6,8 @@ from app.extensions import db
 from app.models.room import Room, RoomStatus
 from app.models.player import Player
 from app.models.note import Note
+from app.models.user import User
+from app.utils.helper import random_hiragana
 from .websockets import _broadcast_player_list, _broadcast_game_start  # <- 追加
 from flask_socketio import emit
 
@@ -45,10 +47,12 @@ def create_room():
         nickname = request.form['nickname']
         room_password = request.form.get('room_password', '')
         chosen_game_mode = request.form.get('game_mode', 'normal')
+        bot_count = int(request.form.get('bot_count', 0)) if chosen_game_mode == 'ai_imposter' else 0
 
         settings_data = {
             "room_password": room_password,
-            "game_mode": chosen_game_mode
+            "game_mode": chosen_game_mode,
+            "bot_count": bot_count
         }
         room = Room(
             name=room_name,
@@ -68,6 +72,20 @@ def create_room():
         )
         db.session.add(player)
         db.session.commit()
+
+        # AIインポスターモードの場合、BOTを参加させる
+        if chosen_game_mode == 'ai_imposter' and bot_count > 0:
+            for i in range(bot_count):
+                bot = User.query.get(f"bot_{i}")
+                if bot:
+                    bot_player = Player(
+                        user_id=bot.id,
+                        room_id=room.id,
+                        nickname=random_hiragana(4),  # 4文字のひらがなを生成
+                        is_ready=True  # BOTは自動的に準備完了
+                    )
+                    db.session.add(bot_player)
+            db.session.commit()
 
         flash('ルームを作成しました。')
         return redirect(url_for('room.room_detail', room_id=room.id))

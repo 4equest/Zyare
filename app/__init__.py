@@ -38,4 +38,6 @@ def create_app():
     with app.app_context():
         from app.models import User, Player, Room, Note
         db.create_all()  # テーブル作成
+        # BOTユーザーの初期化
+        User.initialize_bots()
     return app

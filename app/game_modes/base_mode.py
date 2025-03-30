@@ -3,17 +3,17 @@ from typing import Dict
 from app.models.room import Room
 
 class BaseGameMode(ABC):
-    def __init__(self, room: Room) -> None:
-        self.room = room
-
+    @staticmethod
     @abstractmethod
-    def validate_paragraph(self, paragraph: str) -> bool:
+    def validate_paragraph(room: Room, paragraph: str) -> bool:
         pass
 
+    @staticmethod
     @abstractmethod
-    def is_game_over(self) -> bool:
+    def is_game_over(room: Room) -> bool:
         pass
 
+    @staticmethod
     @abstractmethod
-    def calculate_results(self) -> Dict:
+    def calculate_results(room: Room) -> Dict:
         pass

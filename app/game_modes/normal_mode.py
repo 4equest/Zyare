@@ -1,18 +1,22 @@
 from .base_mode import BaseGameMode
+from app.models.room import Room
 
 class NormalGameMode(BaseGameMode):
-    def validate_paragraph(self, paragraph: str) -> bool:
+    @staticmethod
+    def validate_paragraph(room: Room, paragraph: str) -> bool:
         """指定された文字数以下ならTrue"""
-        char_limit = self.room.settings.get("char_limit", 200)
+        char_limit = room.settings.get("char_limit", 200)
         return len(paragraph) <= char_limit
 
-    def is_game_over(self) -> bool:
+    @staticmethod
+    def is_game_over(room: Room) -> bool:
         """参加者数×ターン数で判断"""
-        total_rounds = self.room.settings.get("total_rounds", 1)
-        expected_paragraphs = len(self.room.players) * total_rounds
-        current_paragraphs = sum([len(note.contents) for note in self.room.notes])
+        total_rounds = room.settings.get("total_rounds", 1)
+        expected_paragraphs = len(room.players) * total_rounds
+        current_paragraphs = sum([len(note.contents) for note in room.notes])
         return current_paragraphs >= expected_paragraphs
 
-    def calculate_results(self) -> dict:
+    @staticmethod
+    def calculate_results(room: Room) -> dict:
         """通常モードには特殊な結果計算なし"""
-        return {"notes": [note.contents for note in self.room.notes]}
+        return {"notes": [note.contents for note in room.notes]}

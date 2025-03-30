@@ -7,6 +7,7 @@ from app.extensions import socketio, db
 from app.models.room import Room, RoomStatus
 from app.models.note import Note
 from app.models.player import Player
+from app.game_modes import get_game_mode_class
 
 def broadcast_new_paragraph(room_id: int, writer_id: str, paragraph: str) -> None:
     """
@@ -224,40 +225,48 @@ def init_websocket(socketio):
             emit('error', {'message': '必要な情報が不足しています'})
             return
         
-        # ノートを取得してパラグラフを追加
+        # ルームとノートを取得
+        room = Room.query.get(room_id)
         note: Note = Note.query.get(note_id)
-        paragraph = paragraph.replace('\n', '<br>')
-        if note and note.room_id == room_id:
-            room = Room.query.get(room_id)
-            current_turn = room.settings.get('current_turn', 0)
-            
-            # 既存のパラグラフがある場合は更新
-            if is_update and note.contents and len(note.contents) > current_turn:
-                new_contents = note.contents.copy()
-                new_contents[current_turn] = {
-                    'writer_id': str(current_user.id),
-                    'paragraph': paragraph,
-                    "timestamp": datetime.utcnow().isoformat()
-                }
-                note.contents = None
-                db.session.flush()
-                note.contents = new_contents
-            else:
-                note.add_content(str(current_user.id), paragraph)
-                
-            db.session.commit()
-
-            # 進捗状況を取得して通知
-            completed_count = room.written_paragraphs_count()
-            total_players = len(room.players)
-            
-            broadcast_paragraph_progress(room_id, completed_count, total_players)
-
-            # 全員がパラグラフを投稿したら次のターンへ
-            if completed_count == total_players:
-                broadcast_all_paragraphs_submitted(room_id)
-        else:
+        
+        if not room or not note or note.room_id != room_id:
             emit('error', {'message': 'ノートが見つかりません'})
+            return
+
+        # ゲームモードの取得とバリデーション
+        game_mode_class = get_game_mode_class(room)
+        if not game_mode_class.validate_paragraph(room, paragraph):
+            emit('error', {'message': '文字数制限を超えています'})
+            return
+
+        paragraph = paragraph.replace('\n', '<br>')
+        current_turn = room.settings.get('current_turn', 0)
+        
+        # 既存のパラグラフがある場合は更新
+        if is_update and note.contents and len(note.contents) > current_turn:
+            new_contents = note.contents.copy()
+            new_contents[current_turn] = {
+                'writer_id': str(current_user.id),
+                'paragraph': paragraph,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+            note.contents = None
+            db.session.flush()
+            note.contents = new_contents
+        else:
+            note.add_content(str(current_user.id), paragraph)
+            
+        db.session.commit()
+
+        # 進捗状況を取得して通知
+        completed_count = room.written_paragraphs_count()
+        total_players = len(room.players)
+        
+        broadcast_paragraph_progress(room_id, completed_count, total_players)
+
+        # 全員がパラグラフを投稿したら次のターンへ
+        if completed_count == total_players:
+            broadcast_all_paragraphs_submitted(room_id)
 
     @socketio.on('next_paragraph', namespace='/ws/game')
     def handle_next_paragraph(data):
