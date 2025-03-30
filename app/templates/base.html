@@ -21,12 +21,12 @@
   </style>
   {% block head_extras %}{% endblock %}
 </head>
-<body class="grid-pattern min-h-screen">
+<body class="grid-pattern min-h-svh ">
   {% if not hide_header %}
     {% include 'components/header.html' %}
   {% endif %}
 
-  <main class="relative z-10 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+  <main class="relative z-10 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 pt-20 min-h-svh items-center justify-center p-4 w-screen justify-center items-center">
     {% block content %}{% endblock %}
   </main>
 

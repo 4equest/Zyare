@@ -3,8 +3,7 @@
 {% block title %}ルーム詳細{% endblock %}
 
 {% block content %}
-{% include 'components/glass_card.html' %}
-  {% block glass_content %}
+
     <div class="flex justify-between items-center mb-8">
       <div class="space-y-1">
         <h2 class="text-3xl font-bold tracking-tight text-gray-800">{{ room.name }}</h2>
@@ -125,7 +124,6 @@
         </form>
       </div>
     </div>
-  {% endblock %}
 {% endblock %}
 
 {% block scripts %}
