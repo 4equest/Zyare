@@ -4,9 +4,9 @@
 {% set hide_header = true %}
 
 {% block content %}
-<div class="min-h-svh  backdrop-filter backdrop-blur-md flex">
+<div class="min-h-svh border border-gray-200 rounded-lg  backdrop-filter backdrop-blur-md flex">
   <!-- サイドバー -->
-  <div class="w-64 bg-white bg-opacity-70 backdrop-filter backdrop-blur-xl p-6 border-r border-gray-200 border-opacity-50">
+  <div class="w-64 bg-white bg-opacity-70 backdrop-filter backdrop-blur-xl p-6 rounded-l-lg">
     <h2 class="text-lg font-semibold mb-6 text-gray-800">ノート一覧</h2>
     <div class="space-y-3">
       {% for note in notes %}
@@ -29,7 +29,7 @@
           onclick="showNote({{ note.id }})"
           {% if not is_visible %}disabled{% endif %}
         >
-          ノート {{ loop.index }}
+          {{ note.title }}
         </button>
       {% endfor %}
 
