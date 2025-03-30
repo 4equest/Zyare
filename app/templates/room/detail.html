@@ -10,7 +10,9 @@
         <h2 class="text-3xl font-bold tracking-tight text-gray-800">{{ room.name }}</h2>
         <p class="text-sm text-gray-600 font-medium tracking-wide">ゲームモード: {{ room.settings.game_mode|default('normal') }}</p>
       </div>
-      <div class="w-16 h-16 bg-gray-100/50 backdrop-blur-sm rounded-lg flex items-center justify-center transform rotate-45 border border-gray-200/50">
+      <div class="w-16 h-16 bg-gray-100 bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg 
+                  flex items-center justify-center transform rotate-45 
+                  border border-gray-200 border-opacity-50 shadow-lg">
         <span class="text-2xl font-bold text-gray-700 transform -rotate-45">{{ players|length }}</span>
       </div>
     </div>
@@ -19,7 +21,8 @@
       <h3 class="text-xl font-semibold mb-4 text-gray-800">参加者一覧</h3>
       <div class="grid grid-cols-2 gap-4">
         {% for p in players %}
-          <div class="bg-gray-50/50 backdrop-blur-sm p-4 rounded-lg border border-gray-200/50">
+          <div class="bg-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-md p-4 rounded-lg 
+                      border border-gray-200 border-opacity-50 shadow-lg">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
                 <div class="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -38,9 +41,10 @@
 
     {% if room.status.value == 'waiting' %}
       <button id="joinButton"
-              class="w-full bg-gray-800/90 text-white px-6 py-3 rounded-lg hover:bg-gray-700/90 
+              class="w-full bg-gray-800 bg-opacity-90 text-white px-6 py-3 rounded-lg 
+                     hover:bg-gray-700 hover:bg-opacity-90 
                      transition-all duration-200 transform hover:scale-[1.02] 
-                     backdrop-blur-sm border border-gray-700/30 shadow-lg">
+                     backdrop-filter backdrop-blur-md border border-gray-700 border-opacity-30 shadow-lg">
         <span class="flex items-center justify-center space-x-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -49,7 +53,8 @@
         </span>
       </button>
     {% elif room.status.value == 'playing' %}
-      <div class="bg-red-50/50 backdrop-blur-sm p-4 rounded-lg border border-red-200/50">
+      <div class="bg-red-50 bg-opacity-50 backdrop-filter backdrop-blur-md p-4 rounded-lg 
+                  border border-red-200 border-opacity-50 shadow-lg">
         <p class="text-red-700 flex items-center">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -58,7 +63,8 @@
         </p>
       </div>
     {% else %}
-      <div class="bg-gray-50/50 backdrop-blur-sm p-4 rounded-lg border border-gray-200/50">
+      <div class="bg-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-md p-4 rounded-lg 
+                  border border-gray-200 border-opacity-50 shadow-lg">
         <p class="text-gray-700 flex items-center">
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -69,8 +75,9 @@
     {% endif %}
 
     {# 参加モーダル #}
-    <div id="joinModal" class="fixed inset-0 bg-black/30 backdrop-blur-sm hidden items-center justify-center z-50">
-      <div class="bg-white/40 backdrop-blur-md rounded-2xl p-8 w-full max-w-md border border-white/20 shadow-2xl">
+    <div id="joinModal" class="fixed inset-0 bg-black bg-opacity-40 backdrop-filter backdrop-blur-md hidden items-center justify-center z-50">
+      <div class="bg-white bg-opacity-70 backdrop-blur-xl rounded-2xl p-8 w-full max-w-md 
+                  border border-white border-opacity-30 shadow-2xl">
         <div class="flex justify-between items-center mb-6">
           <div class="space-y-1">
             <h3 class="text-2xl font-bold text-gray-800">ルームに参加</h3>
@@ -78,7 +85,8 @@
           </div>
           <button id="closeModal" 
                   class="w-8 h-8 flex items-center justify-center rounded-full 
-                         bg-white/50 hover:bg-white/70 transition-all duration-200
+                         bg-white bg-opacity-50 hover:bg-white hover:bg-opacity-70 
+                         transition-all duration-200
                          text-gray-600 hover:text-gray-800">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -102,15 +110,15 @@
           <div class="flex justify-end space-x-4 mt-8">
             <button type="button" 
                     id="cancelButton"
-                    class="px-6 py-2.5 text-gray-700 bg-white/50 backdrop-blur-sm rounded-lg 
-                           hover:bg-white/70 transition-all duration-200 border border-white/20
-                           shadow-lg hover:shadow-xl">
+                    class="px-6 py-2.5 text-gray-700 bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-lg 
+                           hover:bg-white hover:bg-opacity-70 transition-all duration-200 
+                           border border-gray-200 border-opacity-50 shadow-lg hover:shadow-xl">
               キャンセル
             </button>
             <button type="submit"
-                    class="px-6 py-2.5 text-white bg-gray-800/80 backdrop-blur-sm rounded-lg 
-                           hover:bg-gray-700/80 transition-all duration-200 border border-gray-700/30
-                           shadow-lg hover:shadow-xl">
+                    class="px-6 py-2.5 text-white bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-sm rounded-lg 
+                           hover:bg-gray-700 hover:bg-opacity-90 transition-all duration-200 
+                           border border-gray-700 border-opacity-30 shadow-lg hover:shadow-xl">
               参加する
             </button>
           </div>

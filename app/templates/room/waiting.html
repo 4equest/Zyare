@@ -10,16 +10,19 @@
         <h2 class="text-3xl font-bold tracking-tight text-gray-800">{{ room.name }}</h2>
         <p class="text-sm text-gray-600 font-medium tracking-wide">ゲームモード: <span id="game-mode">{{ room.settings.game_mode|default('normal') }}</span></p>
       </div>
-      <div class="w-16 h-16 bg-gray-100/50 backdrop-blur-sm rounded-lg flex items-center justify-center transform rotate-45 border border-gray-200/50">
+      <div class="w-16 h-16 bg-gray-100 bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg 
+                  flex items-center justify-center transform rotate-45 
+                  border border-gray-200 border-opacity-50 shadow-lg">
         <span class="text-2xl font-bold text-gray-700 transform -rotate-45">{{ players|length }}</span>
       </div>
     </div>
 
     <div class="mb-8">
       <h3 class="text-xl font-semibold mb-4 text-gray-800">参加者一覧</h3>
-      <div class="grid grid-cols-2 gap-4">
+      <div id="player-list" class="grid grid-cols-2 gap-4">
         {% for p in players %}
-          <div class="bg-gray-50/50 backdrop-blur-sm p-4 rounded-lg border border-gray-200/50">
+          <div class="bg-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-md p-4 rounded-lg 
+                      border border-gray-200 border-opacity-50 shadow-lg">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
                 <div class="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -34,11 +37,13 @@
                 </span>
               </div>
               {% if p.user_id == room.creator_id %}
-                <span class="text-sm bg-purple-100/50 text-purple-700 px-2 py-1 rounded-full backdrop-blur-sm border border-purple-200/50">
+                <span class="text-sm bg-purple-100 bg-opacity-50 text-purple-700 px-2 py-1 
+                            rounded-full backdrop-filter backdrop-blur-sm border border-purple-200 border-opacity-50">
                   ルーム作者
                 </span>
               {% elif p.is_ready %}
-                <span class="text-sm bg-green-100/50 text-green-700 px-2 py-1 rounded-full backdrop-blur-sm border border-green-200/50">
+                <span class="text-sm bg-green-100 bg-opacity-50 text-green-700 px-2 py-1 
+                            rounded-full backdrop-filter backdrop-blur-sm border border-green-200 border-opacity-50">
                   準備完了
                 </span>
               {% endif %}
@@ -59,9 +64,10 @@
       {% if not is_ready %}
         <form method="POST" action="{{ url_for('room.player_ready', room_id=room.id) }}" name="readyForm" class="mt-6">
           <button type="submit" 
-                  class="w-full bg-green-600/90 text-white px-6 py-3 rounded-lg hover:bg-green-700/90 
+                  class="w-full bg-green-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
+                         hover:bg-green-700 hover:bg-opacity-90 
                          transition-all duration-200 transform hover:scale-[1.02] 
-                         backdrop-blur-sm border border-green-500/30 shadow-lg">
+                         backdrop-filter backdrop-blur-md border border-green-500 border-opacity-30 shadow-lg">
             <span class="flex items-center justify-center space-x-2">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -73,9 +79,10 @@
       {% else %}
         <form method="POST" action="{{ url_for('room.player_ready', room_id=room.id) }}" name="readyForm" class="mt-6">
           <button type="submit" 
-                  class="w-full bg-yellow-600/90 text-white px-6 py-3 rounded-lg hover:bg-yellow-700/90 
+                  class="w-full bg-yellow-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
+                         hover:bg-yellow-700 hover:bg-opacity-90 
                          transition-all duration-200 transform hover:scale-[1.02] 
-                         backdrop-blur-sm border border-yellow-500/30 shadow-lg">
+                         backdrop-blur-md border border-yellow-500 border-opacity-30 shadow-lg">
             <span class="flex items-center justify-center space-x-2">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -90,9 +97,10 @@
     {% if current_user.id == room.creator_id %}
       <form method="POST" action="{{ url_for('room.start_game', room_id=room.id) }}" name="startForm" class="mt-6">
         <button type="submit" 
-                class="w-full bg-indigo-600/90 text-white px-6 py-3 rounded-lg hover:bg-indigo-700/90 
+                class="w-full bg-indigo-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
+                       hover:bg-indigo-700 hover:bg-opacity-90 
                        transition-all duration-200 transform hover:scale-[1.02] 
-                       backdrop-blur-sm border border-indigo-500/30 shadow-lg">
+                       backdrop-filter backdrop-blur-md border border-indigo-500 border-opacity-30 shadow-lg">
           <span class="flex items-center justify-center space-x-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
@@ -106,9 +114,10 @@
 
     <form method="POST" action="{{ url_for('room.leave_room', room_id=room.id) }}" name="leaveForm" class="mt-6">
       <button type="submit" 
-              class="w-full bg-gray-600/90 text-white px-6 py-3 rounded-lg hover:bg-gray-700/90 
+              class="w-full bg-gray-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
+                     hover:bg-gray-700 hover:bg-opacity-90 
                      transition-all duration-200 transform hover:scale-[1.02] 
-                     backdrop-blur-sm border border-gray-500/30 shadow-lg">
+                     backdrop-filter backdrop-blur-md border border-gray-500 border-opacity-30 shadow-lg">
         <span class="flex items-center justify-center space-x-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -127,20 +136,18 @@
     const readyForm = document.forms['readyForm'];
     const leaveForm = document.forms['leaveForm'];
     const startForm = document.forms['startForm'];
+    const playerList = document.getElementById('player-list');
 
-    // ルーム作成者の場合はreadyFormが存在しないので、その場合はスキップ
     if (!leaveForm) {
       console.error('Leave form not found');
       return;
     }
 
-    // ゲーム開始ボタンのクリックイベント
     if (startForm) {
       startForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // プレイヤー一覧から全員準備完了かチェック
-        const players = Array.from(document.querySelectorAll('.grid > div')).map(div => {
+        const players = Array.from(document.querySelectorAll('#player-list > div')).map(div => {
           const isReady = div.querySelector('.bg-green-100\\/50') !== null;
           const isCreator = div.querySelector('.bg-purple-100\\/50') !== null;
           return { isReady, isCreator };
@@ -153,17 +160,14 @@
           return;
         }
 
-        // 全員準備完了の場合はフォームを送信
         this.submit();
       });
     }
 
-    // WebSocket接続の設定
     const socket = io('/ws/room', {
       path: '/socket.io'
     });
 
-    // 接続確立後にjoinイベントを送信
     socket.on('connect', function() {
       console.log('Connected to WebSocket');
       socket.emit('join', {
@@ -173,17 +177,15 @@
       });
     });
 
-    // プレイヤー一覧の更新を受信
     socket.on('message', function(data) {
       if (data.type === 'player_list') {
         // プレイヤー一覧の更新処理
-        const playerList = document.querySelector('.grid');
         if (!playerList) return;
 
         playerList.innerHTML = '';
         data.players.forEach(player => {
           const div = document.createElement('div');
-          div.className = 'bg-gray-50/50 backdrop-blur-sm p-4 rounded-lg border border-gray-200/50';
+          div.className = 'bg-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-md p-4 rounded-lg border border-gray-200 border-opacity-50 shadow-lg';
           div.innerHTML = `
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
@@ -197,9 +199,9 @@
                 </span>
               </div>
               ${player.user_id === "{{ room.creator_id }}" 
-                ? '<span class="text-sm bg-purple-100/50 text-purple-700 px-2 py-1 rounded-full backdrop-blur-sm border border-purple-200/50">ルーム作者</span>'
+                ? '<span class="text-sm bg-purple-100 bg-opacity-50 text-purple-700 px-2 py-1 rounded-full backdrop-filter backdrop-blur-sm border border-purple-200 border-opacity-50">ルーム作者</span>'
                 : player.is_ready 
-                  ? '<span class="text-sm bg-green-100/50 text-green-700 px-2 py-1 rounded-full backdrop-blur-sm border border-green-200/50">準備完了</span>'
+                  ? '<span class="text-sm bg-green-100 bg-opacity-50 text-green-700 px-2 py-1 rounded-full backdrop-filter backdrop-blur-sm border border-green-200 border-opacity-50">準備完了</span>'
                   : ''}
             </div>
           `;
@@ -220,7 +222,7 @@
             const button = readyForm.querySelector('button');
             if (button) {
               if (isReady) {
-                button.className = 'w-full bg-yellow-600/90 text-white px-6 py-3 rounded-lg hover:bg-yellow-700/90 transition-all duration-200 transform hover:scale-[1.02] backdrop-blur-sm border border-yellow-500/30 shadow-lg';
+                button.className = 'w-full bg-yellow-600 bg-opacity-90 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 hover:bg-opacity-90 transition-all duration-200 transform hover:scale-[1.02] backdrop-filter backdrop-blur-md border border-yellow-500 border-opacity-30 shadow-lg';
                 button.innerHTML = `
                   <span class="flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,7 +232,7 @@
                   </span>
                 `;
               } else {
-                button.className = 'w-full bg-green-600/90 text-white px-6 py-3 rounded-lg hover:bg-green-700/90 transition-all duration-200 transform hover:scale-[1.02] backdrop-blur-sm border border-green-500/30 shadow-lg';
+                button.className = 'w-full bg-green-600 bg-opacity-90 text-white px-6 py-3 rounded-lg hover:bg-green-700 hover:bg-opacity-90 transition-all duration-200 transform hover:scale-[1.02] backdrop-filter backdrop-blur-md border border-green-500 border-opacity-30 shadow-lg';
                 button.innerHTML = `
                   <span class="flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -267,7 +269,7 @@
                 <button type="submit" 
                         class="w-full bg-indigo-600/90 text-white px-6 py-3 rounded-lg hover:bg-indigo-700/90 
                                transition-all duration-200 transform hover:scale-[1.02] 
-                               backdrop-blur-sm border border-indigo-500/30 shadow-lg">
+                               backdrop-filter backdrop-blur-sm border border-indigo-500/30 shadow-lg">
                   <span class="flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>

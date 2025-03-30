@@ -5,36 +5,38 @@
 
 {% block head_extras %}{% endblock %}
 {% block content %}
-<div class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-  <div class="w-full max-w-[95vw] bg-white/50 backdrop-blur-md p-6 rounded shadow">
-    <div class="flex justify-between items-center mb-6">
-      <h2 class="text-2xl font-bold">ターン {{ game_state.current_turn + 1 }}</h2>
+<div class="min-h-screen backdrop-filter backdrop-blur-md flex flex-col items-center justify-center p-4">
+  <div class="w-full max-w-[95vw] bg-white bg-opacity-70 backdrop-filter backdrop-blur-xl p-8 rounded-2xl 
+              border border-white border-opacity-30 shadow-2xl">
+    <div class="flex justify-between items-center mb-8">
+      <h2 class="text-2xl font-bold text-gray-800">ターン {{ game_state.current_turn + 1 }}</h2>
       <div class="text-sm text-gray-600">
         投稿完了: <span id="completed-count">{{ game_state.completed_count }}</span>/<span id="total-players">{{ game_state.total_players }}</span>
       </div>
     </div>
 
     <!-- プログレスバー -->
-    <div class="mb-6">
+    <div class="mb-8">
       <div class="flex items-center justify-between mb-2">
         <span class="text-gray-600">投稿状況</span>
         <span id="progressText" class="text-gray-800 font-semibold">{{ game_state.completed_count }}/{{ game_state.total_players }} 完了</span>
       </div>
-      <div class="w-full bg-gray-200 rounded-full h-2.5">
-        <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full" style="width: {{ (game_state.completed_count / game_state.total_players) * 100 }}%"></div>
+      <div class="w-full bg-gray-200 bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-full h-2.5">
+        <div id="progressBar" class="bg-blue-600 bg-opacity-90 h-2.5 rounded-full" style="width: {{ (game_state.completed_count / game_state.total_players) * 100 }}%"></div>
       </div>
     </div>
 
-    <div class="mb-6 bg-white/70 p-4 rounded shadow-sm">
-      <h3 class="text-lg font-semibold mb-4">{{ current_note.title }}</h3>
+    <div class="mb-6 bg-white bg-opacity-50 backdrop-filter backdrop-blur-md p-6 rounded-xl 
+                border border-gray-200 border-opacity-50 shadow-lg">
+      <h3 class="text-xl font-semibold mb-6 text-gray-800">{{ current_note.title }}</h3>
       
       <div class="grid grid-cols-2 gap-8">
         <!-- 左側: 前のプレイヤーの投稿 -->
-        <div class="border-r pr-8">
-          <h4 class="text-sm font-medium text-gray-600 mb-2">前のプレイヤーの投稿</h4>
-          <div id="previous-content" class="min-h-[500px] bg-gray-50 p-4 rounded">
+        <div class="border-r border-gray-200 border-opacity-50 pr-8">
+          <h4 class="text-sm font-medium text-gray-600 mb-3">前のプレイヤーの投稿</h4>
+          <div id="previous-content" class="min-h-[500px] bg-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-sm p-6 rounded-lg">
             {% if previous_content %}
-              {{ previous_content.paragraph|cr }}
+              <div class="text-gray-700">{{ previous_content.paragraph|cr }}</div>
             {% else %}
               <p class="text-gray-400 italic">まだ投稿がありません</p>
             {% endif %}
@@ -43,7 +45,7 @@
 
         <!-- 右側: 現在のプレイヤーの投稿フォーム -->
         <div class="flex flex-col">
-          <h4 class="text-sm font-medium text-gray-600 mb-2">
+          <h4 class="text-sm font-medium text-gray-600 mb-3">
             {% if game_state.is_bot_turn %}
               AIのターン
             {% else %}
@@ -52,7 +54,8 @@
           </h4>
           <div class="flex-1 flex flex-col">
             {% if game_state.is_bot_turn %}
-              <div class="min-h-[500px] bg-gray-50 p-4 rounded flex items-center justify-center">
+              <div class="min-h-[500px] bg-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-sm p-6 rounded-lg 
+                          flex items-center justify-center">
                 <div class="text-center">
                   <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
                   <p class="text-gray-600">あなたのかわりにAIが文章を生成中です...</p>
@@ -61,13 +64,21 @@
             {% else %}
               <textarea 
                 id="paragraph-input"
-                class="flex-1 w-full border border-gray-300 rounded p-4 resize-none"
+                class="flex-1 w-full bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm 
+                       border border-gray-300 border-opacity-50 rounded-lg p-4 resize-none
+                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
+                       focus:border-blue-500 focus:border-opacity-50
+                       text-gray-700 placeholder-gray-400"
                 placeholder="ここに文章を入力してください..."
               ></textarea>
               <div class="flex justify-end mt-4">
                 <button 
                   onclick="submitParagraph()"
-                  class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg"
+                  class="bg-blue-600 bg-opacity-90 text-white px-8 py-3 rounded-lg 
+                         hover:bg-blue-700 hover:bg-opacity-90 
+                         transition-all duration-200 transform hover:scale-[1.02] 
+                         backdrop-filter backdrop-blur-sm 
+                         border border-blue-500 border-opacity-30 shadow-lg"
                 >
                   投稿する
                 </button>
@@ -80,6 +91,7 @@
   </div>
 </div>
 {% endblock %}
+
 {% block scripts %}
 <script>
     const socket = io('/ws/game', {

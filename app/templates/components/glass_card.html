@@ -1,12 +1,18 @@
 {# templates/components/glass_card.html #}
 <div class="
-  bg-white/30 
+  bg-white/80 
   shadow-lg 
   rounded-lg 
-  border border-white/20 
-  backdrop-blur-md 
+  border border-white/30 
+  backdrop-filter backdrop-blur-md 
   p-6 
   my-4
+  transform 
+  transition-all 
+  duration-300 
+  hover:scale-[1.02] 
+  hover:shadow-xl
+  hover:bg-white/90
 ">
   <!-- この中に任意のコンテンツを埋め込みたい場合は、ブロックでも変数でも可 -->
   {% block glass_content %}

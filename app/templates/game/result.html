@@ -4,11 +4,11 @@
 {% set hide_header = true %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-100 flex">
+<div class="min-h-screen backdrop-filter backdrop-blur-md flex">
   <!-- サイドバー -->
-  <div class="w-64 bg-white/50 backdrop-blur-md p-4 border-r border-gray-200">
-    <h2 class="text-lg font-semibold mb-4">ノート一覧</h2>
-    <div class="space-y-2">
+  <div class="w-64 bg-white bg-opacity-70 backdrop-filter backdrop-blur-xl p-6 border-r border-gray-200 border-opacity-50">
+    <h2 class="text-lg font-semibold mb-6 text-gray-800">ノート一覧</h2>
+    <div class="space-y-3">
       {% for note in notes %}
         {% set note_id = note.id|string %}
         {% set is_first = loop.first %}
@@ -16,11 +16,13 @@
         {% set is_current = loop.first %}
         <button 
           id="note-button-{{ note.id }}"
-          class="w-full text-left px-4 py-2 rounded-lg transition-colors
+          class="w-full text-left px-4 py-2.5 rounded-lg transition-all duration-200
             {% if is_current %}
-              bg-blue-100 text-blue-800
+              bg-blue-100 bg-opacity-50 text-blue-800 backdrop-filter backdrop-blur-sm
+              border border-blue-200 border-opacity-50
             {% elif is_visible %}
-              hover:bg-gray-100
+              hover:bg-gray-100 hover:bg-opacity-50 backdrop-filter backdrop-blur-sm
+              border border-gray-200 border-opacity-30
             {% else %}
               opacity-50 cursor-not-allowed
             {% endif %}"
@@ -34,7 +36,9 @@
       {% if room.settings.get('game_mode') == 'ai_imposter' %}
         <button 
           id="vote-button"
-          class="w-full text-left px-4 py-2 rounded-lg transition-colors hidden"
+          class="w-full text-left px-4 py-2.5 rounded-lg transition-all duration-200 hidden
+                 hover:bg-gray-100 hover:bg-opacity-50 backdrop-filter backdrop-blur-sm
+                 border border-gray-200 border-opacity-30"
           onclick="showVote()"
         >
           投票
@@ -54,16 +58,18 @@
           id="note-content-{{ note.id }}"
           class="{% if not is_first %}hidden{% endif %}"
         >
-          <h3 class="text-2xl font-bold mb-6">{{ note.title }}</h3>
+          <h3 class="text-2xl font-bold mb-8 text-gray-800">{{ note.title }}</h3>
           <div class="space-y-6">
             {% for content in note.contents %}
               {% set is_visible = visibility_state[note_id][loop.index0|string]|default(false) %}
               <div 
                 id="paragraph-{{ note.id }}-{{ loop.index0 }}"
-                class="{% if not is_visible %}hidden{% endif %} bg-white/70 backdrop-blur-md p-6 rounded-lg shadow-sm"
+                class="{% if not is_visible %}hidden{% endif %} 
+                       bg-white bg-opacity-70 backdrop-filter backdrop-blur-md p-6 rounded-xl 
+                       border border-gray-200 border-opacity-50 shadow-lg"
               >
-                <div class="text-sm text-gray-600 mb-2">プレイヤー {{ room.players|selectattr('user_id', 'equalto', content.writer_id)|map(attribute='nickname')|first }}</div>
-                <div class="text-lg">{{ content.paragraph }}</div>
+                <div class="text-sm text-gray-600 mb-3">プレイヤー {{ room.players|selectattr('user_id', 'equalto', content.writer_id)|map(attribute='nickname')|first }}</div>
+                <div class="text-lg text-gray-700">{{ content.paragraph }}</div>
               </div>
             {% endfor %}
           </div>
@@ -79,7 +85,11 @@
     <div id="next-note-button" class="hidden mt-8">
       <button 
         onclick="showNextNote()"
-        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+        class="bg-blue-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
+               hover:bg-blue-700 hover:bg-opacity-90 
+               transition-all duration-200 transform hover:scale-[1.02] 
+               backdrop-filter backdrop-blur-sm 
+               border border-blue-500 border-opacity-30 shadow-lg"
       >
         次のノートを表示
       </button>
@@ -90,7 +100,11 @@
       <div id="start-vote-button" class="hidden mt-8">
         <button 
           onclick="startVote()"
-          class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+          class="bg-green-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
+                 hover:bg-green-700 hover:bg-opacity-90 
+                 transition-all duration-200 transform hover:scale-[1.02] 
+                 backdrop-filter backdrop-blur-sm 
+                 border border-green-500 border-opacity-30 shadow-lg"
         >
           投票を開始
         </button>
@@ -103,7 +117,11 @@
     <div class="fixed bottom-8 right-8 space-y-4">
       <button 
         onclick="nextParagraph()"
-        class="bg-green-600 text-white px-8 py-4 rounded-lg hover:bg-green-700 transition-colors text-lg shadow-lg"
+        class="bg-green-600 bg-opacity-90 text-white px-8 py-4 rounded-lg 
+               hover:bg-green-700 hover:bg-opacity-90 
+               transition-all duration-200 transform hover:scale-[1.02] 
+               backdrop-filter backdrop-blur-sm 
+               border border-green-500 border-opacity-30 shadow-lg text-lg"
       >
         次へ
       </button>
@@ -111,7 +129,11 @@
       <button 
         id="end-game-button"
         onclick="endGame()"
-        class="hidden bg-red-600 text-white px-8 py-4 rounded-lg hover:bg-red-700 transition-colors text-lg shadow-lg"
+        class="hidden bg-red-600 bg-opacity-90 text-white px-8 py-4 rounded-lg 
+               hover:bg-red-700 hover:bg-opacity-90 
+               transition-all duration-200 transform hover:scale-[1.02] 
+               backdrop-filter backdrop-blur-sm 
+               border border-red-500 border-opacity-30 shadow-lg text-lg"
       >
         ゲームを終了
       </button>
@@ -153,15 +175,14 @@
     }
   });
 
-   // ゲーム終了イベントを受信
-   socket.on('game_ended', (data) => {
+  // ゲーム終了イベントを受信
+  socket.on('game_ended', (data) => {
     window.location.href = data.redirect_url;
-   });
-
+  });
 
   // 投票終了を受信
   socket.on('vote_ended', (data) => {
-    window.location.href = data.redirect_url;
+    window.open(data.redirect_url, '_blank');
   });
 
   // 表示状態を更新
@@ -188,11 +209,11 @@
         if (isVisible) {
           noteButton.disabled = false;
           noteButton.classList.remove('opacity-50', 'cursor-not-allowed');
-          noteButton.classList.add('hover:bg-gray-100');
+          noteButton.classList.add('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
         } else {
           noteButton.disabled = true;
           noteButton.classList.add('opacity-50', 'cursor-not-allowed');
-          noteButton.classList.remove('hover:bg-gray-100');
+          noteButton.classList.remove('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
         }
       }
     });
@@ -218,13 +239,13 @@
 
     // ボタンのスタイルを更新
     document.querySelectorAll('[id^="note-button-"]').forEach(button => {
-      button.classList.remove('bg-blue-100', 'text-blue-800');
-      button.classList.add('hover:bg-gray-100');
+      button.classList.remove('bg-blue-100', 'bg-opacity-50', 'text-blue-800', 'border-blue-200', 'border-opacity-50');
+      button.classList.add('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
     });
     const selectedButton = document.getElementById(`note-button-${noteId}`);
     if (selectedButton) {
-      selectedButton.classList.remove('hover:bg-gray-100');
-      selectedButton.classList.add('bg-blue-100', 'text-blue-800');
+      selectedButton.classList.remove('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
+      selectedButton.classList.add('bg-blue-100', 'bg-opacity-50', 'text-blue-800', 'border-blue-200', 'border-opacity-50');
     }
 
     currentNoteId = noteId;
@@ -241,13 +262,13 @@
 
     // ボタンのスタイルを更新
     document.querySelectorAll('[id^="note-button-"]').forEach(button => {
-      button.classList.remove('bg-blue-100', 'text-blue-800');
-      button.classList.add('hover:bg-gray-100');
+      button.classList.remove('bg-blue-100', 'bg-opacity-50', 'text-blue-800', 'border-blue-200', 'border-opacity-50');
+      button.classList.add('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
     });
     const voteButton = document.getElementById('vote-button');
     if (voteButton) {
-      voteButton.classList.remove('hover:bg-gray-100');
-      voteButton.classList.add('bg-blue-100', 'text-blue-800');
+      voteButton.classList.remove('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
+      voteButton.classList.add('bg-blue-100', 'bg-opacity-50', 'text-blue-800', 'border-blue-200', 'border-opacity-50');
     }
   }
 
@@ -320,9 +341,9 @@
     socket.emit('end_game', { room_id: roomId });
   }
 
-      // 次のノートボタンの表示判定
-      checkNextNoteButton();
-    // 終了ボタンの表示判定
-    checkEndGameButton();
+  // 初期表示時のボタン表示判定
+  checkNextNoteButton();
+  checkEndGameButton();
+  checkStartVoteButton();
 </script>
 {% endblock %}

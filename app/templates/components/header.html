@@ -1,21 +1,37 @@
 {# templates/components/header.html #}
 <nav
   class="fixed top-0 w-full h-12 flex items-center justify-between px-4
-         backdrop-blur-sm bg-white/60 shadow-md border-b border-gray-300"
+         bg-white bg-opacity-80 backdrop-filter backdrop-blur-md
+         shadow-lg border-b border-gray-200 border-opacity-50 z-50"
 >
 
   <div class="text-lg font-semibold">
-    <a href="{{ url_for('room.room_list') }}" class="hover:text-gray-600">
+    <a href="{{ url_for('room.room_list') }}" class="text-gray-800 hover:text-gray-600 transition-colors duration-200">
       Zyare
     </a>
   </div>
 
-  <ul class="flex space-x-4 text-sm font-medium">
-    <li><a href="{{ url_for('room.create_room') }}" class="hover:text-gray-600">ルーム作成</a></li>
-    <li><a href="{{ url_for('room.room_list') }}" class="hover:text-gray-600">ルーム一覧</a></li>
+  <ul class="flex space-x-6 text-sm font-medium">
+    <li>
+      <a href="{{ url_for('room.create_room') }}" 
+         class="text-gray-700 hover:text-gray-900 transition-colors duration-200">
+        ルーム作成
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('room.room_list') }}" 
+         class="text-gray-700 hover:text-gray-900 transition-colors duration-200">
+        ルーム一覧
+      </a>
+    </li>
     <!--
     <li><a href="" class="hover:text-gray-600">アカウント設定</a></li>
   -->
-    <li><a href="{{ url_for('auth.logout') }}" class="hover:text-gray-600">ログアウト</a></li>
+    <li>
+      <a href="{{ url_for('auth.logout') }}" 
+         class="text-gray-700 hover:text-gray-900 transition-colors duration-200">
+        ログアウト
+      </a>
+    </li>
   </ul>
 </nav>

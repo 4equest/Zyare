@@ -3,62 +3,105 @@
 {% block title %}ルーム作成{% endblock %}
 
 {% block content %}
-{% include 'components/glass_card.html' %}
-  {% block glass_content %}
-    <div class="flex justify-between items-center mb-8">
-      <div class="space-y-1">
-        <h2 class="text-3xl font-bold tracking-tight text-gray-800">ルーム作成</h2>
-        <p class="text-sm text-gray-600 font-medium tracking-wide">新しいルームを作成してゲームを始めましょう</p>
-      </div>
-    </div>
+<div class="min-h-screen backdrop-filter backdrop-blur-md p-4">
+  <div class="max-w-2xl mx-auto">
+    {% include 'components/glass_card.html' %}
+      {% block glass_content %}
+        <div class="flex justify-between items-center mb-8">
+          <div class="space-y-1">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-800">ルーム作成</h2>
+            <p class="text-sm text-gray-700 font-medium tracking-wide">新しいルームを作成してゲームを始めましょう</p>
+          </div>
+        </div>
 
-    <form method="POST" class="space-y-6">
-      {% with field_id="room_name", field_name="room_name", field_type="text", label_text="ルーム名", placeholder="ルーム名を入力", required=true %}
-        {% include 'components/form_field.html' %}
-      {% endwith %}
+        <form method="POST" class="space-y-6">
+          {% with field_id="room_name",
+            field_name="room_name",
+            field_type="text",
+            label_text="ルーム名",
+            placeholder="ルーム名を入力",
+            required=true
+          %}
+            {% include 'components/form_field.html' %}
+          {% endwith %}
 
-      {% with field_id="nickname", field_name="nickname", field_type="text", label_text="ニックネーム", placeholder="表示名を入力", required=true %}
-        {% include 'components/form_field.html' %}
-      {% endwith %}
+          {% with field_id="nickname",
+            field_name="nickname",
+            field_type="text",
+            label_text="ニックネーム",
+            placeholder="表示名を入力",
+            required=true
+          %}
+            {% include 'components/form_field.html' %}
+          {% endwith %}
 
-      {% with field_id="room_password", field_name="room_password", field_type="password", label_text="ルームパスワード", placeholder="パスワードを設定（任意）" %}
-        {% include 'components/form_field.html' %}
-      {% endwith %}
+          {% with field_id="room_password",
+            field_name="room_password",
+            field_type="password",
+            label_text="ルームパスワード",
+            placeholder="パスワードを設定（任意）"
+          %}
+            {% include 'components/form_field.html' %}
+          {% endwith %}
 
-      <div class="space-y-2">
-        <label for="game_mode" class="block text-sm font-medium text-gray-700">ゲームモード</label>
-        <select id="game_mode" name="game_mode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-          <option value="normal">通常モード</option>
-          <option value="ai_imposter">AIインポスターモード</option>
-        </select>
-      </div>
+          <div class="space-y-2">
+            <label for="game_mode" class="block text-sm font-medium text-gray-800">ゲームモード</label>
+            <select id="game_mode" name="game_mode" 
+                    class="w-full px-3 py-2.5 
+                           bg-white bg-opacity-80 backdrop-filter backdrop-blur-md 
+                           border border-gray-300 border-opacity-70 
+                           rounded-lg 
+                           shadow-sm 
+                           focus:outline-none focus:ring-2 
+                           focus:ring-gray-400 focus:ring-opacity-70 
+                           focus:border-gray-400 focus:border-opacity-70 
+                           transition-all duration-200
+                           text-gray-900">
+              <option value="normal">通常モード</option>
+              <option value="ai_imposter">AIインポスターモード</option>
+            </select>
+          </div>
 
-      <div id="bot_count_container" class="space-y-2 hidden">
-        <label for="bot_count" class="block text-sm font-medium text-gray-700">BOTの人数</label>
-        <select id="bot_count" name="bot_count" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-          <option value="0">0人</option>
-          <option value="1">1人</option>
-          <option value="2">2人</option>
-          <option value="3">3人</option>
-        </select>
-      </div>
+          <div id="bot_count_container" class="space-y-2 hidden">
+            <label for="bot_count" class="block text-sm font-medium text-gray-800">BOTの人数</label>
+            <select id="bot_count" name="bot_count" 
+                    class="w-full px-3 py-2.5 
+                           bg-white bg-opacity-80 backdrop-filter backdrop-blur-md 
+                           border border-gray-300 border-opacity-70 
+                           rounded-lg 
+                           shadow-sm 
+                           focus:outline-none focus:ring-2 
+                           focus:ring-gray-400 focus:ring-opacity-70 
+                           focus:border-gray-400 focus:border-opacity-70 
+                           transition-all duration-200
+                           text-gray-900">
+              <option value="0">0人</option>
+              <option value="1">1人</option>
+              <option value="2">2人</option>
+              <option value="3">3人</option>
+            </select>
+          </div>
 
-      <div class="flex justify-end space-x-4">
-        <a href="{{ url_for('room.room_list') }}" 
-           class="px-6 py-2.5 text-gray-700 bg-white/50 backdrop-blur-sm rounded-lg 
-                  hover:bg-white/70 transition-all duration-200 border border-white/20
-                  shadow-lg hover:shadow-xl">
-          キャンセル
-        </a>
-        <button type="submit"
-                class="px-6 py-2.5 text-white bg-gray-800/80 backdrop-blur-sm rounded-lg 
-                       hover:bg-gray-700/80 transition-all duration-200 border border-gray-700/30
-                       shadow-lg hover:shadow-xl">
-          ルームを作成
-        </button>
-      </div>
-    </form>
-  {% endblock %}
+          <div class="flex justify-end space-x-4">
+            <a href="{{ url_for('room.room_list') }}" 
+               class="px-6 py-2.5 text-gray-800 bg-white bg-opacity-80 backdrop-filter backdrop-blur-md rounded-lg 
+                      hover:bg-white hover:bg-opacity-90 transition-all duration-200 
+                      border border-gray-300 border-opacity-70
+                      shadow-lg hover:shadow-xl">
+              キャンセル
+            </a>
+            <button type="submit"
+                    class="px-6 py-2.5 text-white bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-md rounded-lg 
+                           hover:bg-gray-700 hover:bg-opacity-90 transition-all duration-200 
+                           border border-gray-700 border-opacity-30
+                           shadow-lg hover:shadow-xl">
+              ルームを作成
+            </button>
+          </div>
+        </form>
+      {% endblock %}
+  </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

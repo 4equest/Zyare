@@ -3,21 +3,84 @@
 {% block title %}ルーム一覧{% endblock %}
 
 {% block content %}
-{% include 'components/glass_card.html' %}
-  {% block glass_content %}
-    <h2 class="text-2xl font-bold mb-4">ルーム一覧</h2>
-    <ul>
-      {% for rm in rooms %}
-        <li class="mb-2 flex items-center justify-between">
-          <div>
-            <span class="font-semibold text-lg">{{ rm.name }}</span>
-            <span class="ml-2 text-sm text-gray-600">モード: {{ rm.settings.game_mode|default('normal') }}</span>
+<div class="min-h-screen backdrop-filter backdrop-blur-md p-4">
+  <div class="max-w-4xl mx-auto">
+    {% include 'components/glass_card.html' %}
+      {% block glass_content %}
+        <div class="flex justify-between items-center mb-8">
+          <div class="space-y-1">
+            <h2 class="text-3xl font-bold tracking-tight text-gray-800">ルーム一覧</h2>
+            <p class="text-sm text-gray-600 font-medium tracking-wide">参加可能なルームを表示しています</p>
           </div>
-          <a class="text-blue-600 hover:underline" href="{{ url_for('room.room_detail', room_id=rm.id) }}">
-            詳細
+          <a href="{{ url_for('room.create_room') }}" 
+             class="bg-gray-800 bg-opacity-90 text-white px-6 py-2.5 rounded-lg 
+                    hover:bg-gray-700 hover:bg-opacity-90 transition-all duration-200 
+                    transform hover:scale-[1.02] backdrop-filter backdrop-blur-sm 
+                    border border-gray-700 border-opacity-30 shadow-lg">
+            <span class="flex items-center space-x-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M12 4v16m8-8H4"/>
+              </svg>
+              <span>新規ルーム作成</span>
+            </span>
           </a>
-        </li>
-      {% endfor %}
-    </ul>
-  {% endblock %}
+        </div>
+
+        <div class="space-y-4">
+          {% for rm in rooms %}
+            <div class="bg-white bg-opacity-50 backdrop-filter backdrop-blur-md p-6 rounded-lg 
+                        border border-gray-200 border-opacity-50 
+                        hover:border-gray-300 hover:border-opacity-70 
+                        transition-all duration-200
+                        shadow-lg hover:shadow-xl">
+              <div class="flex items-center justify-between">
+                <div class="space-y-1">
+                  <h3 class="text-xl font-semibold text-gray-800">{{ rm.name }}</h3>
+                  <div class="flex items-center space-x-2">
+                    <span class="px-2 py-1 text-xs font-medium 
+                                backdrop-filter backdrop-blur-md bg-opacity-50 
+                                text-gray-700 rounded-full
+                                border border-gray-200 border-opacity-30">
+                      {{ rm.settings.game_mode|default('normal') }}
+                    </span>
+                    <span class="text-sm text-gray-600">
+                      {{ rm.players|length }}人参加中
+                    </span>
+                  </div>
+                </div>
+                <a href="{{ url_for('room.room_detail', room_id=rm.id) }}" 
+                   class="bg-gray-800 bg-opacity-90 text-white px-4 py-2 rounded-lg 
+                          hover:bg-gray-700 hover:bg-opacity-90 transition-all duration-200 
+                          transform hover:scale-[1.02] backdrop-filter backdrop-blur-sm 
+                          border border-gray-700 border-opacity-30 shadow-lg">
+                  詳細を見る
+                </a>
+              </div>
+            </div>
+          {% else %}
+            <div class="text-center py-12 bg-white bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg border border-gray-200 border-opacity-50">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">ルームがありません</h3>
+              <p class="mt-1 text-sm text-gray-500">新しいルームを作成してゲームを始めましょう。</p>
+              <div class="mt-6">
+                <a href="{{ url_for('room.create_room') }}" 
+                   class="inline-flex items-center px-4 py-2 
+                          bg-gray-800 bg-opacity-90 text-white 
+                          rounded-lg hover:bg-gray-700 hover:bg-opacity-90 
+                          transition-all duration-200 backdrop-filter backdrop-blur-sm 
+                          border border-gray-700 border-opacity-30 
+                          shadow-lg hover:shadow-xl">
+                  ルームを作成
+                </a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% endblock %}
+  </div>
+</div>
 {% endblock %}

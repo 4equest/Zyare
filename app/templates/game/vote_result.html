@@ -4,36 +4,45 @@
 {% set hide_header = true %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
-  <div class="w-full max-w-[95vw] bg-white/50 backdrop-blur-md p-6 rounded shadow">
-    <h2 class="text-2xl font-bold mb-6">投票結果</h2>
+<div class="min-h-screen backdrop-filter backdrop-blur-md flex flex-col items-center justify-center p-4">
+  <div class="w-full max-w-[95vw] bg-white bg-opacity-70 backdrop-filter backdrop-blur-xl p-8 rounded-2xl 
+              border border-gray-200 border-opacity-50 shadow-2xl">
+    <h2 class="text-3xl font-bold mb-8 text-gray-800">投票結果</h2>
     
-    <div class="space-y-4">
+    <div class="space-y-6">
       {% for player in players %}
-        <div class="bg-white/70 backdrop-blur-md p-4 rounded-lg shadow-sm flex items-center justify-between">
-          <div class="flex items-center space-x-4">
-            {% if player.vote_count == 0 %}
-              <div class="text-green-500">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
+        <div class="bg-white bg-opacity-50 backdrop-filter backdrop-blur-md p-6 rounded-xl 
+                    border border-gray-200 border-opacity-30 shadow-lg">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              {% if player.vote_count == 0 %}
+                <div class="text-green-500">
+                  <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </div>
+              {% endif %}
+              <div>
+                <div class="text-xl font-medium text-gray-800">{{ player.nickname }}</div>
+                <div class="text-sm text-gray-600">ID: {{ player.user_id }}</div>
               </div>
-            {% endif %}
-            <div>
-              <div class="font-medium">{{ player.nickname }}</div>
-              <div class="text-sm text-gray-600">ID: {{ player.user_id }}</div>
+              {% if player.is_bot %}
+                <span class="px-3 py-1 text-sm font-medium bg-blue-100 bg-opacity-50 text-blue-800 
+                           rounded-full backdrop-filter backdrop-blur-sm border border-blue-200 border-opacity-30">
+                  AI
+                </span>
+              {% endif %}
             </div>
-            {% if player.is_bot %}
-              <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">AI</span>
-            {% endif %}
-          </div>
-          <div class="text-sm text-gray-600">
-            投票数: {{ player.vote_count }}
-            {% if player.voters %}
-              <div class="mt-1">
-                投票者: {{ player.voters|join(', ') }}
+            <div class="text-right">
+              <div class="text-lg font-semibold text-gray-800">
+                投票数: <span class="text-blue-600">{{ player.vote_count }}</span>
               </div>
-            {% endif %}
+              {% if player.voters %}
+                <div class="mt-2 text-sm text-gray-600">
+                  投票者: {{ player.voters|join(', ') }}
+                </div>
+              {% endif %}
+            </div>
           </div>
         </div>
       {% endfor %}

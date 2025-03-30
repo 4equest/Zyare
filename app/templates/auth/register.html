@@ -3,23 +3,65 @@
 {% block title %}アカウント作成{% endblock %}
 
 {% block content %}
-{% include 'components/glass_card.html' %}
-  {% block glass_content %}
-    <h2 class="text-2xl font-bold mb-4">アカウント作成</h2>
-    
-    {# アカウント作成後、パスワードが表示される場合の例 #}
-    {% if password is defined %}
-      <p class="mb-4 text-lg font-semibold text-red-700">自動生成パスワード: {{ password }}</p>
-      <p>このパスワードは変更できません。必ずメモしてください。</p>
-    {% else %}
-      <form method="POST" action="{{ url_for('auth.register') }}">
-        {% with field_id="user_id", field_name="user_id", label_text="新規ユーザーID", field_type="text", placeholder="ユーザーIDを入力してください" %}
-          {% include 'components/form_field.html' %}
-        {% endwith %}
-        <button class="bg-gray-800 text-white px-4 py-2 rounded hover:bg-gray-900" type="submit">
-          作成
-        </button>
-      </form>
-    {% endif %}
-  {% endblock %}
+<div class="min-h-screen backdrop-filter backdrop-blur-md flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+    {% include 'components/glass_card.html' %}
+      {% block glass_content %}
+        <div class="text-center mb-8">
+          <h2 class="text-3xl font-bold text-gray-800 tracking-tight">アカウント作成</h2>
+          <p class="mt-2 text-sm text-gray-600">新しいアカウントを作成してゲームを始めましょう</p>
+        </div>
+        
+        {% if password is defined %}
+          <div class="bg-green-50 bg-opacity-50 backdrop-filter backdrop-blur-sm p-4 rounded-lg border border-green-200 border-opacity-50 mb-6">
+            <div class="flex items-center space-x-2 text-green-700 mb-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="font-semibold">アカウント作成完了</span>
+            </div>
+            <div class="bg-white bg-opacity-50 p-4 rounded border border-gray-200 border-opacity-50">
+              <p class="text-sm text-gray-600 mb-2">自動生成されたパスワード</p>
+              <p class="text-lg font-mono font-bold text-gray-800">{{ password }}</p>
+            </div>
+            <p class="mt-4 text-sm text-red-600">※ このパスワードは変更できません。必ずメモしてください。</p>
+          </div>
+        {% else %}
+          <form method="POST" action="{{ url_for('auth.register') }}" class="space-y-6">
+            {% with field_id="user_id",
+              field_name="user_id",
+              label_text="ユーザーID",
+              field_type="text",
+              placeholder="ユーザーIDを入力",
+              required=true
+            %}
+              {% include 'components/form_field.html' %}
+            {% endwith %}
+
+            <button type="submit" 
+                    class="w-full bg-gray-800 bg-opacity-90 text-white px-6 py-3 rounded-lg 
+                           hover:bg-gray-700 hover:bg-opacity-90 transition-all duration-200 
+                           transform hover:scale-[1.02] backdrop-filter backdrop-blur-sm 
+                           border border-gray-700 border-opacity-30 shadow-lg">
+              <span class="flex items-center justify-center space-x-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                </svg>
+                <span>アカウントを作成</span>
+              </span>
+            </button>
+          </form>
+        {% endif %}
+
+        <div class="mt-6 text-center">
+          <a href="{{ url_for('auth.login') }}" 
+             class="text-sm text-gray-600 hover:text-gray-800 transition-colors duration-200">
+            すでにアカウントをお持ちの方はこちら
+          </a>
+        </div>
+      {% endblock %}
+  </div>
+</div>
 {% endblock %}
