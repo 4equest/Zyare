@@ -99,7 +99,7 @@ class Room(db.Model):
         visibility_state = {}
         for note in self.notes:
             visibility_state[str(note.id)] = {
-                str(i): i == 0 for i in range(len(note.contents))
+                str(i): False for i in range(len(note.contents))
             }
         new_settings['visibility_state'] = visibility_state
         self.settings = new_settings

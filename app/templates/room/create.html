@@ -43,6 +43,18 @@
             {% include 'components/form_field.html' %}
           {% endwith %}
 
+          {% with field_id="total_rounds",
+            field_name="total_rounds",
+            field_type="number",
+            label_text="ターン数",
+            placeholder="ターン数を入力",
+            required=true,
+            value=2
+          %}
+            {% include 'components/form_field.html' %}
+          {% endwith %}
+
+
           <div class="space-y-2">
             <label for="game_mode" class="block text-sm font-medium text-gray-800">ゲームモード</label>
             <select id="game_mode" name="game_mode" 

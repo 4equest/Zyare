@@ -95,12 +95,18 @@ def set_title_page(room_id: int):
     if not player_note:
         flash('ノートが見つかりません。')
         return redirect(url_for('room.room_detail', room_id=room_id))
+    
+    completed_count = room.written_titles_count()
+    total_players = room.get_players_count(include_bots=False)
+    
+    if completed_count == total_players:
+        return redirect(url_for('game.play', room_id=room_id))
 
     return render_template('game/set_title.html',
                          room=room,
                          current_title=player_note.title or '',
-                         completed_count=room.written_titles_count(),
-                         total_players=room.get_players_count(include_bots=False))
+                         completed_count=completed_count,
+                         total_players=total_players)
 
 @game_bp.route('/play/<int:room_id>', methods=['GET', 'POST'])
 @login_required

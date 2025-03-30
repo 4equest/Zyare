@@ -21,7 +21,8 @@
                 disabled:border-gray-200 disabled:border-opacity-50
                 disabled:text-gray-500 disabled:placeholder-gray-300
                 disabled:cursor-not-allowed
-                disabled:shadow-none">
+                disabled:shadow-none"
+          {%if value %}value="{{ value }}"{% endif %}>
   {% if error_message %}
     <p class="mt-1 text-sm text-red-600">{{ error_message }}</p>
   {% endif %}

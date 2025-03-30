@@ -8,6 +8,7 @@
       <div class="space-y-1">
         <h2 class="text-3xl font-bold tracking-tight text-gray-800">{{ room.name }}</h2>
         <p class="text-sm text-gray-600 font-medium tracking-wide">ゲームモード: {{ room.settings.game_mode|default('normal') }}</p>
+        <p class="text-sm text-gray-600 font-medium tracking-wide">ターン数: {{ room.settings.total_rounds|default(2) }}</p>
       </div>
       <div class="w-16 h-16 bg-gray-100 bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg 
                   flex items-center justify-center transform rotate-45 
