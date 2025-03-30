@@ -145,7 +145,7 @@
       startForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const players = Array.from(document.querySelectorAll('#player-list > div')).map(div => {
+        const players = Array.from(document.querySelectorAll('#player-list .player-item')).map(div => {
           const isReady = div.querySelector('.bg-green-100\\/50') !== null;
           const isCreator = div.querySelector('.bg-purple-100\\/50') !== null;
           return { isReady, isCreator };

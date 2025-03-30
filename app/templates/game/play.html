@@ -68,8 +68,9 @@
                        border border-gray-300 border-opacity-50 rounded-lg p-4 resize-none
                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
                        focus:border-blue-500 focus:border-opacity-50
-                       text-gray-700 placeholder-gray-400"
+                       text-gray-700 placeholder-gray-400 overflow-hidden"
                 placeholder="ここに文章を入力してください..."
+                oninput="autoResize(this)"
               ></textarea>
               <div class="flex justify-end mt-4">
                 <button 
@@ -100,6 +101,22 @@
     const roomId = {{ room.id }};
     const noteId = {{ current_note.id if current_note else 'null' }};
     let hasSubmitted = false;
+
+    // テキストエリアの高さを自動調整する関数
+    function autoResize(textarea) {
+        // 高さをリセット
+        textarea.style.height = 'auto';
+        // スクロールの高さに合わせて高さを設定
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    // 初期表示時に高さを調整
+    document.addEventListener('DOMContentLoaded', function() {
+        const textarea = document.getElementById('paragraph-input');
+        if (textarea) {
+            autoResize(textarea);
+        }
+    });
 
     // WebSocket接続
     socket.emit('subscribe_game', { room_id: roomId });
