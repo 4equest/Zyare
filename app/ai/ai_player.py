@@ -14,7 +14,7 @@ class AIPlayer:
         prompt += f"# タイトル\n{title}\n"
         prompt += f"# 前の文章\n{previous_paragraph}\n"
         response = completion(
-            model="gpt-3.5-turbo",
+            model="gemini-2.0-flash",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=200
         )

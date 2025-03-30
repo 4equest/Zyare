@@ -12,3 +12,4 @@ class Config:
     
     # SQLiteローカルファイル
     SQLALCHEMY_DATABASE_URI = f"sqlite:///{DB_FILE}"
+    
