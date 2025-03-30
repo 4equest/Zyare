@@ -15,6 +15,9 @@ class Note(db.Model):
     title = db.Column(db.String(255), nullable=True)
     # [user_id, user_id, ...]
     writers = db.Column(JSON, default=[])
+    title_setter_player_id = db.Column(db.String(50), nullable=True)  # タイトルを決めるプレイヤーのID
+
+    room = db.relationship("Room", backref="notes")
 
     def add_content(self, writer_id: str, paragraph: str) -> None:
         """新しい段落を追加"""

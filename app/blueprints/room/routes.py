@@ -181,23 +181,34 @@ def start_game(room_id: int):
     new_settings["current_phase_turn"] = 0  # 現在のフェーズでのターン数
     
     room.settings = new_settings
-    # 例えば、プレイヤー数分のノートを準備するなど
+
+    # ノートの作成（BOTを除いたプレイヤーの人数分）
     if not room.notes:  # まだノートが無ければ
-        for p in players:
+        # BOTを除いたプレイヤーを取得
+        non_bot_players = [p for p in players if not p.user.is_bot]
+        
+        # まず、各ノートのwritersを設定
+        for p in non_bot_players:
             new_note = Note(room_id=room.id, contents=[], writers=[])
-            # new_settings["player_order"]を2周分連続で扱うために複製
-            order_twice = new_settings["player_order"] * 3
+            # プレイヤー順序を3周分用意（オフセットを含むため）
+            order_three_times = new_settings["player_order"] * 3
             # 現在のプレイヤーpのuser_idの開始位置を取得
             try:
                 start_index = new_settings["player_order"].index(p.user_id)
             except ValueError:
                 continue  # 万が一含まれていなければスキップ
             # 2周分（全体の2倍の長さ）のユーザーIDを連続で選択
-            selected_ids = order_twice[start_index:start_index + 2 * len(new_settings["player_order"])]
+            selected_ids = order_three_times[start_index:start_index + 2 * len(new_settings["player_order"])]
             # 選択した順番で対応するPlayerオブジェクトをnew_note.writersに追加
             for uid in selected_ids:
                 new_note.writers.append(uid)
             db.session.add(new_note)
+        
+        # 次に、タイトルを決めるプレイヤーをランダムに選択して設定
+        title_setters = non_bot_players.copy()
+        random.shuffle(title_setters)
+        for note, title_setter in zip(room.notes, title_setters):
+            note.title_setter_player_id = title_setter.user_id
 
     # その後、room.status = PLAYING
     room.start_game()

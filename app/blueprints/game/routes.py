@@ -33,7 +33,11 @@ def set_title_page(room_id: int):
         return redirect(url_for('room.room_detail', room_id=room_id))
 
     # 自分のノートを取得
-    player_note = next((n for n in room.notes if n.writers and n.writers[0] == str(current_user.id)), None)
+    player_note = Note.query.filter_by(
+        room_id=room_id,
+        title_setter_player_id=current_user.id
+    ).first()
+    
     if not player_note:
         flash('ノートが見つかりません。')
         return redirect(url_for('room.room_detail', room_id=room_id))
