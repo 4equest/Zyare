@@ -1,4 +1,3 @@
-# app/blueprints/game/websockets.py
 from datetime import datetime
 from flask_socketio import emit, join_room, leave_room
 from flask import request, url_for

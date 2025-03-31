@@ -1,5 +1,3 @@
-# app/models/note.py
-
 from app.extensions import db
 from sqlalchemy.dialects.postgresql import JSON
 from typing import List, Dict, Any

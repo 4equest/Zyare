@@ -1,4 +1,3 @@
-# app/models/player.py
 from app.extensions import db
 from sqlalchemy.orm import Mapped
 
