@@ -158,10 +158,6 @@ def play(room_id: int):
 
     # ゲームモードの取得
     game_mode_class = get_game_mode_class(room)
-    
-    # ゲーム終了チェック
-    if game_mode_class.is_game_over(room):
-        return redirect(url_for('game.result', room_id=room_id))
 
     completed_count = room.written_paragraphs_count()
     total_players = room.get_players_count(include_bots=False)
@@ -174,7 +170,11 @@ def play(room_id: int):
         
         room.advance_turn()
         db.session.commit()
-
+        
+    # ゲーム終了チェック
+    if game_mode_class.is_game_over(room):
+        return redirect(url_for('game.result', room_id=room_id))
+    
     # 現在のターンのノートを取得
     current_turn = room.settings.get('current_turn', 0)
     player_order = room.settings.get('player_order', [])
@@ -326,4 +326,4 @@ def get_audio(room_id: int, note_id: int, turn: int):
     if not audio_path.exists():
         abort(404)
     
-    return send_file(audio_path, mimetype='audio/mpeg')
+    return send_file(os.path.join("../", audio_path), mimetype='audio/mpeg')

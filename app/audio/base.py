@@ -49,9 +49,9 @@ class BaseAudioSynthesizer(ABC):
 
             # audio_dataがmp3でなければmp3に変換する
             if not audio_data.startswith(b'ID3'):
-                audio_segment = AudioSegment.from_file(io.BytesIO(audio_data))
+                audio_segment: AudioSegment = AudioSegment.from_file(io.BytesIO(audio_data))
                 audio_data = io.BytesIO()
-                audio_segment.export(audio_data, format="mp3")
+                audio_segment.export(audio_data, format="mp3", parameters=["-ar", "44100"])
                 audio_data = audio_data.getvalue()
             # 音声データを保存
             with open(filepath, "wb") as f:

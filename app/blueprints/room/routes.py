@@ -46,7 +46,7 @@ def create_room():
         room_name = request.form['room_name']
         room_password = request.form.get('room_password', '')
         chosen_game_mode = request.form.get('game_mode', 'normal')
-        total_rounds = request.form.get('total_rounds', 2)
+        total_rounds = int(request.form.get('total_rounds', 2))
         bot_count = int(request.form.get('bot_count', 0)) if chosen_game_mode == 'ai_imposter' else 0
 
         # AIインポスターモードの場合は、ランダムなひらがなをニックネームとして使用
@@ -60,7 +60,7 @@ def create_room():
             "game_mode": chosen_game_mode,
             "bot_count": bot_count,
             "bot_turn": 0,
-            "total_rounds": 2
+            "total_rounds": total_rounds
         }
         room = Room(
             name=room_name,

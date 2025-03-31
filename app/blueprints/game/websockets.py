@@ -1,6 +1,6 @@
 # app/blueprints/game/websockets.py
 from datetime import datetime
-from flask_socketio import emit, join_room
+from flask_socketio import emit, join_room, leave_room
 from flask import request, url_for
 from flask_login import current_user
 from app.extensions import socketio, db
@@ -55,6 +55,7 @@ def _broadcast_game_end(room_id: int):
         'room_id': room_id,
         'redirect_url': f'/room/detail/{room_id}'
     }, room=f'room_{room_id}', namespace='/ws/game')
+    leave_room(f'room_{room_id}')
 
 def broadcast_paragraph_progress(room_id: int, completed_count: int, total_players: int):
     """パラグラフ投稿の進捗状況をブロードキャスト"""
@@ -79,6 +80,7 @@ def broadcast_game_ended(room_id: int):
         'room_id': room_id,
         'redirect_url': f'/room/list'
     }, room=f'room_{room_id}', namespace='/ws/game')
+    
 
 def broadcast_show_next_note(room_id: int, next_note_id: int):
     """次のノートを表示するように通知"""

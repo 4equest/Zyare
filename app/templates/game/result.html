@@ -69,7 +69,7 @@
                        border border-gray-200 border-opacity-50 shadow-lg"
               >
                 <div class="text-sm text-gray-600 mb-3">プレイヤー {{ room.players|selectattr('user_id', 'equalto', content.writer_id)|map(attribute='nickname')|first }}</div>
-                <div class="text-lg text-gray-700">{{ content.paragraph }}</div>
+                <div class="text-lg text-gray-700">{{ content.paragraph|cr }}</div>
               </div>
             {% endfor %}
           </div>
@@ -82,18 +82,20 @@
     </div>
 
     <!-- 次のノートを表示ボタン -->
-    <div id="next-note-button" class="hidden mt-8">
-      <button 
-        onclick="showNextNote()"
-        class="bg-blue-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
-               hover:bg-blue-700 hover:bg-opacity-90 
-               transition-all duration-200 transform hover:scale-[1.02] 
-               backdrop-filter backdrop-blur-sm 
-               border border-blue-500 border-opacity-30 shadow-lg"
-      >
-        次のノートを表示
-      </button>
-    </div>
+    {% if room.creator_id == current_user.id %}
+      <div id="next-note-button" class="hidden mt-8">
+        <button 
+          onclick="showNextNote()"
+          class="bg-blue-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
+                 hover:bg-blue-700 hover:bg-opacity-90 
+                 transition-all duration-200 transform hover:scale-[1.02] 
+                 backdrop-filter backdrop-blur-sm 
+                 border border-blue-500 border-opacity-30 shadow-lg"
+        >
+          次のノートを表示
+        </button>
+      </div>
+    {% endif %}
 
     <!-- 投票開始ボタン（ルーム作成者のみ表示） -->
     {% if room.creator_id == current_user.id and room.settings.get('game_mode') == 'ai_imposter' %}
@@ -225,18 +227,26 @@
     
     // 全てのパラグラフの表示状態を更新
     Object.entries(visibilityState).forEach(([noteId, paragraphs]) => {
+      // 最後のvisibleなパラグラフのインデックスを記録
+      let lastVisibleIndex = -1;
+      
+      // まず表示状態を更新
       Object.entries(paragraphs).forEach(([index, visible]) => {
         const paragraph = document.getElementById(`paragraph-${noteId}-${index}`);
         if (paragraph) {
           if (visible) {
             paragraph.classList.remove('hidden');
-            // パラグラフが表示されたら音声を再生
-            playAudio(noteId, parseInt(index));
+            lastVisibleIndex = parseInt(index);
           } else {
             paragraph.classList.add('hidden');
           }
         }
       });
+
+      // 現在表示されているノートのパラグラフのみ音声を再生
+      if (lastVisibleIndex >= 0 && noteId === currentNoteId) {
+        playAudio(noteId, lastVisibleIndex);
+      }
 
       // ノートボタンの状態を更新
       const noteButton = document.getElementById(`note-button-${noteId}`);

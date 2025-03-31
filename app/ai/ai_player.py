@@ -6,15 +6,15 @@ from litellm import completion
 class AIPlayer:
     def generate_paragraph(self, title: str, previous_paragraph: str) -> str:
         prompt = ""
-        with open("instance/prompt/base.txt", "r", encoding="utf-8") as f:
+        with open("instance/prompts/base.txt", "r", encoding="utf-8") as f:
             prompt = f.read()
             prompt += "\n"
             
 
-        files = [f for f in os.listdir("instance/prompt") if f.endswith(".txt") and f != "base.txt"]
+        files = [f for f in os.listdir("instance/prompts") if f.endswith(".txt") and f != "base.txt"]
         if files:
             selected_file = random.choice(files)
-            with open(f"instance/prompt/{selected_file}", "r", encoding="utf-8") as f:
+            with open(f"instance/prompts/{selected_file}", "r", encoding="utf-8") as f:
                 prompt += f.read()
                 prompt += "\n"
         
