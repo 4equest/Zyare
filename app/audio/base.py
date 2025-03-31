@@ -1,3 +1,5 @@
+from pydub import AudioSegment
+import io
 from abc import ABC, abstractmethod
 from typing import Optional
 from pathlib import Path
@@ -45,6 +47,12 @@ class BaseAudioSynthesizer(ABC):
             filename = f"{note_id}_{turn}.mp3"
             filepath = save_dir / filename
 
+            # audio_dataがmp3でなければmp3に変換する
+            if not audio_data.startswith(b'ID3'):
+                audio_segment = AudioSegment.from_file(io.BytesIO(audio_data))
+                audio_data = io.BytesIO()
+                audio_segment.export(audio_data, format="mp3")
+                audio_data = audio_data.getvalue()
             # 音声データを保存
             with open(filepath, "wb") as f:
                 f.write(audio_data)

@@ -12,7 +12,7 @@ class VoicevoxSynthesizer(BaseAudioSynthesizer):
         self.api_url = os.getenv('VOICEVOX_API_URL', 'http://localhost:50021')
         self.speaker_id = int(os.getenv('VOICEVOX_SPEAKER_ID', '1'))
 
-    def synthesize(self, text: str) -> Optional[bytes]:
+    def synthesize(self, text: str, speaker_id: int|None = None) -> Optional[bytes]:
         """
         テキストを音声に変換する
         
@@ -22,25 +22,21 @@ class VoicevoxSynthesizer(BaseAudioSynthesizer):
         Returns:
             Optional[bytes]: 音声データ（MP3形式）。エラー時はNone
         """
+        if speaker_id is None:
+            speaker_id = self.speaker_id
         try:
-            # 音声合成用のクエリを作成
-            query_payload = {"text": text, "speaker": self.speaker_id}
-            query_response = requests.post(
-                f"{self.api_url}/audio_query",
+            query_payload = {
+                "text": text,
+                "speaker": speaker_id,
+                "key": self.api_key
+            }
+            response = requests.post(
+                f"{self.api_url}/audio/",
                 params=query_payload
             )
-            query_response.raise_for_status()
+            response.raise_for_status()
 
-            # 音声合成を実行
-            synthesis_payload = query_response.json()
-            synthesis_response = requests.post(
-                f"{self.api_url}/synthesis",
-                params={"speaker": self.speaker_id},
-                json=synthesis_payload
-            )
-            synthesis_response.raise_for_status()
-
-            return synthesis_response.content
+            return response.content
 
         except Exception as e:
             print(f"VOICEVOX音声合成エラー: {str(e)}")

@@ -82,7 +82,7 @@ def generate_audio_for_previous_turn(room_id: int, previous_turn: int):
     @run_in_background(app)
     def generate_audio():
         try:
-            room = Room.query.get(room_id)
+            room: Room|None = Room.query.get(room_id)
             if not room:
                 return
             
