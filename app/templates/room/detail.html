@@ -3,7 +3,8 @@
 {% block title %}ルーム詳細{% endblock %}
 
 {% block content %}
-
+<div class="min-h-svh border border-gray-200 rounded-lg  backdrop-filter backdrop-blur-md p-4">
+  <div class="max-w-4xl mx-auto py-12">
     <div class="flex justify-between items-center mb-8">
       <div class="space-y-1">
         <h2 class="text-3xl font-bold tracking-tight text-gray-800">{{ room.name }}</h2>
@@ -73,7 +74,8 @@
         </p>
       </div>
     {% endif %}
-
+    </div>  
+</div>
     {# 参加モーダル #}
     <div id="joinModal" class="fixed inset-0 bg-black bg-opacity-40 backdrop-filter backdrop-blur-md hidden items-center justify-center z-50">
       <div class="bg-white bg-opacity-70 backdrop-blur-xl rounded-2xl p-8 w-full max-w-md 
