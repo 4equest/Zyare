@@ -4,7 +4,7 @@
 {% set hide_header = true %}
 
 {% block content %}
-<div class="min-h-svh border border-gray-200 rounded-lg  backdrop-filter backdrop-blur-md flex">
+<div class="min-h-svh border border-gray-200 rounded-lg  backdrop-filter backdrop-blur-sm flex">
   <!-- サイドバー -->
   <div class="w-64 bg-white bg-opacity-70 backdrop-filter backdrop-blur-xl p-6 rounded-l-lg">
     <h2 class="text-lg font-semibold mb-6 text-gray-800">ノート一覧</h2>
@@ -36,7 +36,8 @@
       {% if room.settings.get('game_mode') == 'ai_imposter' %}
         <button 
           id="vote-button"
-          class="w-full text-left px-4 py-2.5 rounded-lg transition-all duration-200 hidden
+          class="w-full text-left px-4 py-2.5 rounded-lg transition-all duration-200
+                 {% if not room.is_voting_started() %}hidden{% endif %}
                  hover:bg-gray-100 hover:bg-opacity-50 backdrop-filter backdrop-blur-sm
                  border border-gray-200 border-opacity-30"
           onclick="showVote()"
@@ -65,7 +66,7 @@
               <div 
                 id="paragraph-{{ note.id }}-{{ loop.index0 }}"
                 class="{% if not is_visible %}hidden{% endif %} 
-                       bg-white bg-opacity-70 backdrop-filter backdrop-blur-md p-6 rounded-xl 
+                       bg-white bg-opacity-70 backdrop-filter backdrop-blur-sm p-6 rounded-xl 
                        border border-gray-200 border-opacity-50 shadow-lg"
               >
               <div class="absolute top-2 right-2">

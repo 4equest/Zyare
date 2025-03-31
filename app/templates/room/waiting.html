@@ -3,7 +3,7 @@
 {% block title %}待機室{% endblock %}
 
 {% block content %}
-<div class="min-h-svh border border-gray-200 rounded-lg  backdrop-filter backdrop-blur-md p-4">
+<div class="min-h-svh border border-gray-200 rounded-lg  backdrop-filter backdrop-blur-sm p-4">
   <div class="max-w-4xl mx-auto py-12">
     <div class="flex justify-between items-center mb-8">
       <div class="space-y-1">
@@ -11,7 +11,7 @@
         <p class="text-sm text-gray-600 font-medium tracking-wide">ゲームモード: <span id="game-mode">{{ room.settings.game_mode|default('normal') }}</span></p>
         <p class="text-sm text-gray-600 font-medium tracking-wide">ターン数: <span id="total-rounds">{{ room.settings.total_rounds|default(2) }}</span></p>
       </div>
-      <div class="w-16 h-16 bg-gray-100 bg-opacity-50 backdrop-filter backdrop-blur-md rounded-lg 
+      <div class="w-16 h-16 bg-gray-100 bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-lg 
                   flex items-center justify-center transform rotate-45 
                   border border-gray-200 border-opacity-50 shadow-lg">
         <span class="text-2xl font-bold text-gray-700 transform -rotate-45">{{ players|length }}</span>
@@ -22,7 +22,7 @@
       <h3 class="text-xl font-semibold mb-4 text-gray-800">参加者一覧</h3>
       <div id="player-list" class="grid grid-cols-2 gap-4">
         {% for p in players %}
-          <div class="bg-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-md p-4 rounded-lg 
+          <div class="bg-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-sm p-4 rounded-lg 
                       border border-gray-200 border-opacity-50 shadow-lg">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
@@ -68,7 +68,7 @@
                   class="w-full bg-green-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
                          hover:bg-green-700 hover:bg-opacity-90 
                          transition-all duration-200 transform hover:scale-[1.02] 
-                         backdrop-filter backdrop-blur-md border border-green-500 border-opacity-30 shadow-lg">
+                         backdrop-filter backdrop-blur-sm border border-green-500 border-opacity-30 shadow-lg">
             <span class="flex items-center justify-center space-x-2">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -83,7 +83,7 @@
                   class="w-full bg-yellow-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
                          hover:bg-yellow-700 hover:bg-opacity-90 
                          transition-all duration-200 transform hover:scale-[1.02] 
-                         backdrop-blur-md border border-yellow-500 border-opacity-30 shadow-lg">
+                         backdrop-blur-sm border border-yellow-500 border-opacity-30 shadow-lg">
             <span class="flex items-center justify-center space-x-2">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -101,7 +101,7 @@
                 class="w-full bg-indigo-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
                        hover:bg-indigo-700 hover:bg-opacity-90 
                        transition-all duration-200 transform hover:scale-[1.02] 
-                       backdrop-filter backdrop-blur-md border border-indigo-500 border-opacity-30 shadow-lg">
+                       backdrop-filter backdrop-blur-sm border border-indigo-500 border-opacity-30 shadow-lg">
           <span class="flex items-center justify-center space-x-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
@@ -118,7 +118,7 @@
               class="w-full bg-gray-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
                      hover:bg-gray-700 hover:bg-opacity-90 
                      transition-all duration-200 transform hover:scale-[1.02] 
-                     backdrop-filter backdrop-blur-md border border-gray-500 border-opacity-30 shadow-lg">
+                     backdrop-filter backdrop-blur-sm border border-gray-500 border-opacity-30 shadow-lg">
         <span class="flex items-center justify-center space-x-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
@@ -187,7 +187,7 @@
         playerList.innerHTML = '';
         data.players.forEach(player => {
           const div = document.createElement('div');
-          div.className = 'bg-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-md p-4 rounded-lg border border-gray-200 border-opacity-50 shadow-lg';
+          div.className = 'bg-gray-50 bg-opacity-50 backdrop-filter backdrop-blur-sm p-4 rounded-lg border border-gray-200 border-opacity-50 shadow-lg';
           div.innerHTML = `
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-3">
@@ -224,7 +224,7 @@
             const button = readyForm.querySelector('button');
             if (button) {
               if (isReady) {
-                button.className = 'w-full bg-yellow-600 bg-opacity-90 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 hover:bg-opacity-90 transition-all duration-200 transform hover:scale-[1.02] backdrop-filter backdrop-blur-md border border-yellow-500 border-opacity-30 shadow-lg';
+                button.className = 'w-full bg-yellow-600 bg-opacity-90 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 hover:bg-opacity-90 transition-all duration-200 transform hover:scale-[1.02] backdrop-filter backdrop-blur-sm border border-yellow-500 border-opacity-30 shadow-lg';
                 button.innerHTML = `
                   <span class="flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,7 +234,7 @@
                   </span>
                 `;
               } else {
-                button.className = 'w-full bg-green-600 bg-opacity-90 text-white px-6 py-3 rounded-lg hover:bg-green-700 hover:bg-opacity-90 transition-all duration-200 transform hover:scale-[1.02] backdrop-filter backdrop-blur-md border border-green-500 border-opacity-30 shadow-lg';
+                button.className = 'w-full bg-green-600 bg-opacity-90 text-white px-6 py-3 rounded-lg hover:bg-green-700 hover:bg-opacity-90 transition-all duration-200 transform hover:scale-[1.02] backdrop-filter backdrop-blur-sm border border-green-500 border-opacity-30 shadow-lg';
                 button.innerHTML = `
                   <span class="flex items-center justify-center space-x-2">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

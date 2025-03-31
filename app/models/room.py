@@ -121,3 +121,13 @@ class Room(db.Model):
             if include_bots or not player.user.is_bot:
                 count += 1
         return count
+
+    def is_voting_started(self) -> bool:
+        """投票が開始されているかどうか"""
+        return self.settings.get('voting_started', False)
+
+    def start_voting(self) -> None:
+        """投票を開始状態にする"""
+        new_settings = self.settings.copy()
+        new_settings['voting_started'] = True
+        self.settings = new_settings

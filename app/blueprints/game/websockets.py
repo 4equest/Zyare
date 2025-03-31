@@ -375,9 +375,19 @@ def init_websocket(socketio):
         if not room.status == RoomStatus.PLAYING:
             return
 
+        # ルーム作成者かどうかチェック
+        if room.creator_id != current_user.id:
+            emit('error', {'message': 'ルーム作成者のみが投票を開始できます。'})
+            return
+
         # 全てのノートが表示されているか確認
         if not room.is_all_paragraphs_visible():
+            emit('error', {'message': '全てのノートが表示されていません。'})
             return
+
+        # 投票を開始状態にする
+        room.start_voting()
+        db.session.commit()
 
         # 投票を開始
         broadcast_vote_start(room_id)
@@ -385,21 +395,28 @@ def init_websocket(socketio):
     @socketio.on('submit_vote', namespace='/ws/game')
     def handle_submit_vote(data):
         room_id = data.get('room_id')
-        vote1 = data.get('vote1')
-        vote2 = data.get('vote2')
-        if not all([room_id, vote1, vote2]):
+        votes = data.get('votes', [])
+        if not room_id or not votes:
             return
 
         room:Room = Room.query.get_or_404(room_id)
         if not room.status == RoomStatus.PLAYING:
             return
 
+        # 投票可能人数を計算（全プレイヤー数の平方根の小数点切り捨て）
+        total_players = len(room.players)
+        expected_vote_count = int((total_players ** 0.5))
+
+        # 投票数が適切か確認
+        if len(votes) != expected_vote_count:
+            emit('error', {'message': f'投票数が不正です。{expected_vote_count}人に投票してください。'})
+            return
+
         # 投票を保存
         vote = Vote(
             room_id=room_id,
             voter_id=current_user.id,
-            vote1=vote1,
-            vote2=vote2
+            votes=votes
         )
         db.session.add(vote)
         db.session.commit()
@@ -413,8 +430,8 @@ def init_websocket(socketio):
             # 投票結果を集計
             vote_counts = {}
             for v in votes:
-                vote_counts[v.vote1] = vote_counts.get(v.vote1, 0) + 1
-                vote_counts[v.vote2] = vote_counts.get(v.vote2, 0) + 1
+                for vote_target in v.votes:
+                    vote_counts[vote_target] = vote_counts.get(vote_target, 0) + 1
 
             # 投票結果を保存
             room.vote_results = vote_counts

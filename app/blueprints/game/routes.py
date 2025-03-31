@@ -265,12 +265,17 @@ def result(room_id: int):
         room.initialize_visibility_state()
         visibility_state = room.get_visibility_state()
         db.session.commit()
+        
+    # 投票可能人数を計算（全プレイヤー数の平方根の小数点切り捨て）
+    total_players = len(room.players)
+    vote_count = int((total_players ** 0.5))
 
     return render_template('game/result.html', 
                          room=room, 
                          notes=room.notes, 
                          results=results_data,
-                         visibility_state=visibility_state)
+                         visibility_state=visibility_state,
+                         vote_count=vote_count)
 
 @game_bp.route('/vote_result/<int:room_id>')
 @login_required
@@ -284,7 +289,7 @@ def vote_result(room_id):
     # プレイヤーごとの投票者を集計
     voters = {}
     for vote in votes:
-        for vote_target in [vote.vote1, vote.vote2]:
+        for vote_target in vote.votes:
             if vote_target not in voters:
                 voters[vote_target] = []
             voter = next((p for p in room.players if p.user_id == vote.voter_id), None)

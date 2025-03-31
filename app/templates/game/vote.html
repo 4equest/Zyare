@@ -1,13 +1,14 @@
 {# templates/game/vote.html #}
 <div class="bg-white bg-opacity-70 backdrop-filter backdrop-blur-xl p-8 rounded-2xl 
             border border-gray-200 border-opacity-50 shadow-2xl">
-  <h3 class="text-2xl font-bold mb-8 text-gray-800">投票</h3>
+  <h3 class="text-2xl font-bold mb-8 text-gray-800">人間だと思うプレイヤーを選択</h3>
   <div class="space-y-8">
     <div class="grid grid-cols-2 gap-8">
-      <div class="bg-white bg-opacity-50 backdrop-filter backdrop-blur-md p-6 rounded-xl 
+      {% for i in range(vote_count) %}
+      <div class="bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm p-6 rounded-xl 
                   border border-gray-200 border-opacity-30 shadow-lg">
-        <label for="vote1" class="block text-sm font-medium text-gray-700 mb-3">1人目の投票先</label>
-        <select id="vote1" 
+        <label for="vote{{ i + 1 }}" class="block text-sm font-medium text-gray-700 mb-3">{{ i + 1 }}人目の投票先</label>
+        <select id="vote{{ i + 1 }}" 
                 class="w-full bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm 
                        border border-gray-300 border-opacity-50 rounded-lg p-3
                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
@@ -19,21 +20,7 @@
           {% endfor %}
         </select>
       </div>
-      <div class="bg-white bg-opacity-50 backdrop-filter backdrop-blur-md p-6 rounded-xl 
-                  border border-gray-200 border-opacity-30 shadow-lg">
-        <label for="vote2" class="block text-sm font-medium text-gray-700 mb-3">2人目の投票先</label>
-        <select id="vote2" 
-                class="w-full bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm 
-                       border border-gray-300 border-opacity-50 rounded-lg p-3
-                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
-                       focus:border-blue-500 focus:border-opacity-50
-                       text-gray-700">
-          <option value="">選択してください</option>
-          {% for player in room.players %}
-            <option value="{{ player.user_id }}">{{ player.nickname }}</option>
-          {% endfor %}
-        </select>
-      </div>
+      {% endfor %}
     </div>
     <div class="flex justify-end">
       <button 
@@ -52,23 +39,34 @@
 
 <script>
 function submitVote() {
-  const vote1 = document.getElementById('vote1').value;
-  const vote2 = document.getElementById('vote2').value;
+  const voteCount = {{ vote_count }};
+  const votes = [];
+  
+  // 全ての投票を取得
+  for (let i = 1; i <= voteCount; i++) {
+    const vote = document.getElementById(`vote${i}`).value;
+    if (!vote) {
+      alert('全ての投票先を選択してください');
+      return;
+    }
+    votes.push(vote);
+  }
 
-  if (!vote1 || !vote2) {
-    alert('両方の投票先を選択してください');
+  // 重複チェック
+  if (new Set(votes).size !== votes.length) {
+    alert('同じプレイヤーに投票することはできません');
     return;
   }
 
-  if (vote1 === vote2) {
-    alert('同じプレイヤーに投票することはできません');
+  // 投票数チェック
+  if (votes.length !== voteCount) {
+    alert(`投票数が不正です。${voteCount}人に投票してください。`);
     return;
   }
 
   socket.emit('submit_vote', {
     room_id: roomId,
-    vote1: vote1,
-    vote2: vote2
+    votes: votes
   });
 }
 </script> 
