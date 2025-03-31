@@ -202,13 +202,12 @@ def start_game(room_id: int):
         # まず、各ノートのwritersを設定
         for i,p in enumerate(non_bot_players):
             new_note = Note(room_id=room.id, contents=[], writers=[])
-            # プレイヤー順序を3周分用意（オフセットを含むため）
-            order_three_times = new_settings["player_order"] * 3
+            user_order = new_settings["player_order"] * (room.settings.get("total_rounds", 2)+1)
 
             start_index = i
 
             # 2周分（全体の2倍の長さ）のユーザーIDを連続で選択
-            selected_ids = order_three_times[start_index:start_index + 2 * len(new_settings["player_order"])]
+            selected_ids = user_order[start_index:start_index + 2 * len(new_settings["player_order"])]
             # 選択した順番で対応するPlayerオブジェクトをnew_note.writersに追加
             for uid in selected_ids:
                 new_note.writers.append(uid)
