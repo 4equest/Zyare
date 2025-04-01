@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}参加履歴{% endblock %}
+
+{% block content %}
+<div class="min-h-svh border border-gray-200 rounded-lg  backdrop-filter backdrop-blur-sm p-4 pt-16">
+    <div class="max-w-4xl mx-auto py-12">
+    <div class="flex justify-between items-center mb-8">
+      <div class="space-y-1">
+        <h2 class="text-3xl font-bold tracking-tight text-gray-800">参加履歴</h2>
+        <p class="text-sm text-gray-600 font-medium tracking-wide">過去に参加したルームを表示しています</p>
+      </div>
+    </div>
+
+    <div class="space-y-4">
+      {% for rm in rooms %}
+        <div class="bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm p-6 rounded-lg 
+                    border border-gray-200 border-opacity-50 
+                    hover:border-gray-300 hover:border-opacity-70 
+                    transition-all duration-200
+                    shadow-lg hover:shadow-xl">
+          <div class="flex items-center justify-between">
+            <div class="space-y-1">
+              <h3 class="text-xl font-semibold text-gray-800">{{ rm.name }}</h3>
+              <div class="flex items-center space-x-2">
+                <span class="px-2 py-1 text-xs font-medium 
+                            backdrop-filter backdrop-blur-sm bg-opacity-50 
+                            text-gray-700 rounded-full
+                            border border-gray-200 border-opacity-30">
+                  {{ rm.settings.game_mode|default('normal') }}
+                </span>
+                <span class="text-sm text-gray-600">
+                  {{ rm.players|length }}人参加
+                </span>
+                <span class="text-sm text-gray-600">
+                  {{ rm.created_at.strftime('%Y/%m/%d %H:%M') }}
+                </span>
+              </div>
+            </div>
+            <div class="flex space-x-4">
+              <a href="{{ url_for('room.room_detail', room_id=rm.id) }}" 
+                 class="bg-gray-800 bg-opacity-90 text-white px-4 py-2 rounded-lg 
+                        hover:bg-gray-700 hover:bg-opacity-90 transition-all duration-200 
+                        transform hover:scale-[1.02] backdrop-filter backdrop-blur-sm 
+                        border border-gray-700 border-opacity-30 shadow-lg">
+                詳細を見る
+              </a>
+              {% if rm.status.value == 'archived' %}
+                <a href="{{ url_for('game.result', room_id=rm.id) }}" 
+                   class="bg-green-600 bg-opacity-90 text-white px-4 py-2 rounded-lg 
+                          hover:bg-green-500 hover:bg-opacity-90 transition-all duration-200 
+                          transform hover:scale-[1.02] backdrop-filter backdrop-blur-sm 
+                          border border-green-700 border-opacity-30 shadow-lg">
+                  結果を見る
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="text-center py-12 bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm rounded-lg border border-gray-200 border-opacity-50">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">参加履歴がありません</h3>
+          <p class="mt-1 text-sm text-gray-500">新しいルームに参加してゲームを始めましょう。</p>
+          <div class="mt-6">
+            <a href="{{ url_for('room.room_list') }}" 
+               class="inline-flex items-center px-4 py-2 
+                      bg-gray-800 bg-opacity-90 text-white 
+                      rounded-lg hover:bg-gray-700 hover:bg-opacity-90 
+                      transition-all duration-200 backdrop-filter backdrop-blur-sm 
+                      border border-gray-700 border-opacity-30 
+                      shadow-lg hover:shadow-xl">
+              ルーム一覧へ
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %} 

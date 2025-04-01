@@ -72,7 +72,7 @@
               >
                 <div class="absolute top-2 right-2">
                   <svg onclick="playAudio({{ note.id }}, {{ loop.index0 }}, this)" class="w-6 h-6 cursor-pointer text-gray-500 hover:text-gray-800 transition" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 22v-20l18 10-18 10z"></path>
+                    <path d="M6 4.5l12 7.5-12 7.5v-15z"></path>
                   </svg>
                 </div>
                 <div class="text-sm text-gray-600 mb-3">プレイヤー {{ room.players|selectattr('user_id', 'equalto', content.writer_id)|map(attribute='nickname')|first }}</div>
@@ -200,8 +200,8 @@
   });
 
   let currentAudioSource = null;
-  const PLAY_ICON_PATH = "M5 3l14 9-14 9V3z";
-  const STOP_ICON_PATH = "M6 6h12v12h-12z";
+  const PLAY_ICON_PATH = "M6 4.5l12 7.5-12 7.5v-15z";
+  const STOP_ICON_PATH = "M7 7h10v10H7V7zm2 2v6h6V9H9z";
   // 音声を再生する
   async function playAudio(noteId, turn, button) {
     try {

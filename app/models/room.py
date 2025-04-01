@@ -1,8 +1,10 @@
 from app.extensions import db
 from sqlalchemy.dialects.postgresql import JSON
+import sqlalchemy as sa
 from typing import List
 from enum import Enum
 from sqlalchemy.orm import Mapped
+from datetime import datetime
 
 class RoomStatus(Enum):
     WAITING = "waiting"    # 参加可能
@@ -13,6 +15,7 @@ class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     creator_id = db.Column(db.String(50), db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=sa.func.now(), nullable=False)
     
     # 進行状態をEnumで管理
     status = db.Column(

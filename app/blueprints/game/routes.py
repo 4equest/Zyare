@@ -173,6 +173,8 @@ def play(room_id: int):
         
     # ゲーム終了チェック
     if game_mode_class.is_game_over(room):
+        room.archive()
+        db.session.commit()
         return redirect(url_for('game.result', room_id=room_id))
     
     # 現在のターンのノートを取得

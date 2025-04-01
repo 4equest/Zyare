@@ -20,6 +20,16 @@ def room_list():
     rooms = Room.query.filter_by(status=RoomStatus.WAITING).all()
     return render_template('room/list.html', rooms=rooms)
 
+@room_bp.route('/history')
+@login_required
+def history():
+    """過去に参加したルームの一覧を表示"""
+    # 現在のユーザーが参加したルームを取得（アーカイブ済みのものも含む）
+    rooms = Room.query.join(Player).filter(
+        Player.user_id == current_user.id
+    ).order_by(Room.created_at.desc()).all()
+    return render_template('room/history.html', rooms=rooms)
+
 @room_bp.route('/detail/<int:room_id>')
 @login_required
 def room_detail(room_id: int):
