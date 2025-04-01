@@ -1,15 +1,20 @@
 import os
 import random
 
+from .default_prompt import prompt as default_prompt
 from litellm import completion
 
 class AIPlayer:
     def generate_paragraph(self, title: str, previous_paragraph: str) -> str:
-        prompt = ""
-        with open("instance/prompts/base.txt", "r", encoding="utf-8") as f:
-            prompt = f.read()
-            prompt += "\n"
-            
+        prompt = default_prompt
+        if os.path.exists("instance/prompts/base.txt"):
+            with open("instance/prompts/base.txt", "r", encoding="utf-8") as f:
+                prompt = f.read()
+                prompt += "\n"
+        else:
+            os.makedirs("instance/prompts", exist_ok=True)
+            with open("instance/prompts/base.txt", "w", encoding="utf-8") as f:
+                f.write(default_prompt) 
 
         files = [f for f in os.listdir("instance/prompts") if f.endswith(".txt") and f != "base.txt"]
         if files:
