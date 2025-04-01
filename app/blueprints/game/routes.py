@@ -152,9 +152,11 @@ def play(room_id: int):
         flash('このルームに参加していません。')
         return redirect(url_for('room.room_list'))
 
-    if room.status != RoomStatus.PLAYING:
+    if room.status == RoomStatus.WAITING:
         flash('ゲームが開始されていません。')
         return redirect(url_for('room.room_detail', room_id=room_id))
+    elif room.status == RoomStatus.ARCHIVED:
+        return redirect(url_for('game.result', room_id=room_id))
 
     # ゲームモードの取得
     game_mode_class = get_game_mode_class(room)

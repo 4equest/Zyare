@@ -379,6 +379,8 @@ def init_websocket(socketio):
             emit('error', {'message': '投票はまだ開始されていません。'})
             return
         
+        
+        
         # 全てのプレイヤーが投票したか確認
         non_bot_players = [p for p in room.players if not p.user.is_bot]
         votes_submitted = Vote.query.filter_by(room_id=room_id).all()
@@ -397,12 +399,16 @@ def init_websocket(socketio):
             return
 
         # 投票を保存
-        vote = Vote(
-            room_id=room_id,
-            voter_id=current_user.id,
-            votes=votes
-        )
-        db.session.add(vote)
+        vote = Vote.query.filter_by(room_id=room_id, voter_id=current_user.id).first()
+        if vote:
+            vote.votes = votes
+        else:
+            vote = Vote(
+                room_id=room_id,
+                voter_id=current_user.id,
+                votes=votes
+            )
+            db.session.add(vote)
         db.session.commit()
 
         # 全プレイヤーが投票したか確認

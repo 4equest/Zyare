@@ -23,11 +23,11 @@ class AIPlayer:
                 prompt += f.read()
                 prompt += "\n"
         
-        prompt += f"# タイトル\n{title}\n"
+        prompt += f"# タイトル\n{title}\n\n"
         prompt += f"# 前の文章\n{previous_paragraph}\n"
         response = completion(
             model="gemini/gemini-2.0-flash",
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=200
+            max_tokens=150
         )
         return response['choices'][0]['message']['content'].strip()

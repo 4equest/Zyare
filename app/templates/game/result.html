@@ -167,6 +167,18 @@
   let audioContext = null;
   let audioBuffers = new Map();
   let isVotingStarted = {{ room.is_voting_started()|tojson }};
+  let isAudioContextInitialized = false;
+
+  // AudioContextを初期化する関数
+  function initializeAudioContext() {
+    if (!isAudioContextInitialized) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+      isAudioContextInitialized = true;
+    }
+  }
 
   // 現在表示中のノートIDを取得する関数
   function getCurrentNoteId() {
@@ -224,9 +236,7 @@
   async function playAudio(noteId, turn, button) {
     try {
       // AudioContextの初期化
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      }
+      initializeAudioContext();
 
       // 音声バッファのキャッシュキー
       const cacheKey = `${noteId}_${turn}`;
@@ -501,7 +511,7 @@
   function showNextNote() {
     const currentNote = document.querySelector('[id^="note-content-"]:not(.hidden)');
     if (currentNote) {
-      const currentNoteId = currentNote.id.split('-')[2];
+      const currentNoteId = getCurrentNoteId();
       const nextNoteId = parseInt(currentNoteId) + 1;
       const nextNote = document.getElementById(`note-content-${nextNoteId}`);
       if (nextNote) {
