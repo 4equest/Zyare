@@ -180,10 +180,6 @@ def init_websocket(socketio):
         if not room:
             emit('error_message', {'error': 'Room not found'}, to=request.sid)
             return
-
-        if room.status != RoomStatus.PLAYING:
-            emit('error_message', {'error': 'このルームは現在ゲームプレイ中ではありません'}, to=request.sid)
-            return
         
         join_room(f'room_{room_id}')
         emit('result_connected', {'status': 'ok'}, to=request.sid)
@@ -327,6 +323,7 @@ def init_websocket(socketio):
         if room.creator_id != current_user.id:
             emit('error', {'message': 'Only room creator can end the game'})
             return
+        
 
         # 全てのパラグラフが表示されているか確認
         visibility_state = room.get_visibility_state()
