@@ -3,7 +3,7 @@
 {% set hide_header = true %}
 
 {% block content %}
-<div class="min-h-svh border border-gray-200 rounded-lg  backdrop-filter backdrop-blur-sm flex">
+<div class="min-h-svh border border-gray-200 rounded-lg  backdrop-filter backdrop-blur-sm flex transition-all duration-500 ease-[cubic-bezier(0,1,0,1)]">
   <!-- サイドバー -->
   <div class="w-64 bg-white bg-opacity-70 backdrop-filter backdrop-blur-xl p-6 rounded-l-lg">
     <h2 class="text-lg font-semibold mb-6 text-gray-800">ノート一覧</h2>
@@ -56,7 +56,8 @@
         {% set is_visible = visibility_state[note_id]['0']|default(false) %}
         <div 
           id="note-content-{{ note.id }}"
-          class="{% if not is_first %}hidden{% endif %}"
+          class="overflow-hidden transition-[height] duration-300 ease-[cubic-bezier(0,1,0,1)]"
+          style="height: 0"
         >
           <h3 class="text-2xl font-bold mb-8 text-gray-800">{{ note.title }}</h3>
           <div class="space-y-6">
@@ -82,7 +83,7 @@
       {% endfor %}
     </div>
 
-    <div id="vote-content" class="hidden">
+    <div id="vote-content" class="overflow-hidden transition-[height] duration-300 ease-[cubic-bezier(0,1,0,1)]" style="height: 0">
       {% include 'game/vote.html' %}
     </div>
 
@@ -306,50 +307,67 @@
     checkStartVoteButton();
   }
 
-  // ノートを表示
-  function showNote(noteId) {
-    // 全てのノートコンテンツを非表示
-    document.querySelectorAll('[id^="note-content-"]').forEach(el => {
-      el.classList.add('hidden');
+  // 初期表示時の高さを設定
+  document.addEventListener('DOMContentLoaded', () => {
+    const firstNote = document.querySelector('[id^="note-content-"]');
+    if (firstNote) {
+      firstNote.style.height = 'auto';
+      const height = firstNote.scrollHeight;
+      firstNote.style.height = `${height}px`;
+    }
+  });
+
+  // タブの表示を切り替える共通関数
+  function switchTab(targetId, targetButton) {
+    // 現在表示中のタブを取得
+    const currentTab = document.querySelector('[id^="note-content-"]:not([style*="height: 0px"])') || 
+                      document.getElementById('vote-content');
+    
+    // 同じタブを押した場合は何もしない
+    if (currentTab && currentTab.id === targetId) {
+      return;
+    }
+
+    // 全てのタブの高さを0に設定
+    document.querySelectorAll('[id^="note-content-"], #vote-content').forEach(el => {
+      el.style.height = '0';
     });
-    // 選択されたノートを表示
-    document.getElementById(`note-content-${noteId}`).classList.remove('hidden');
-    // 投票コンテンツを非表示
-    document.getElementById('vote-content').classList.add('hidden');
+
+    // 選択されたタブの高さを設定
+    const targetTab = document.getElementById(targetId);
+    if (targetTab) {
+      // 一時的に高さをautoに設定して実際の高さを取得
+      targetTab.style.height = 'auto';
+      const height = targetTab.scrollHeight;
+      // 高さを0に戻してから、トランジションで実際の高さに設定
+      targetTab.style.height = '0';
+      requestAnimationFrame(() => {
+        targetTab.style.height = `${height}px`;
+      });
+    }
 
     // ボタンのスタイルを更新
-    document.querySelectorAll('[id^="note-button-"]').forEach(button => {
+    document.querySelectorAll('[id^="note-button-"], #vote-button').forEach(button => {
       button.classList.remove('bg-blue-100', 'bg-opacity-50', 'text-blue-800', 'border-blue-200', 'border-opacity-50');
       button.classList.add('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
     });
-    const selectedButton = document.getElementById(`note-button-${noteId}`);
-    if (selectedButton) {
-      selectedButton.classList.remove('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
-      selectedButton.classList.add('bg-blue-100', 'bg-opacity-50', 'text-blue-800', 'border-blue-200', 'border-opacity-50');
+    if (targetButton) {
+      targetButton.classList.remove('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
+      targetButton.classList.add('bg-blue-100', 'bg-opacity-50', 'text-blue-800', 'border-blue-200', 'border-opacity-50');
     }
+  }
 
+  // ノートを表示
+  function showNote(noteId) {
+    const targetButton = document.getElementById(`note-button-${noteId}`);
+    switchTab(`note-content-${noteId}`, targetButton);
     currentNoteId = noteId;
   }
 
   // 投票を表示
   function showVote() {
-    // 全てのノートコンテンツを非表示
-    document.querySelectorAll('[id^="note-content-"]').forEach(el => {
-      el.classList.add('hidden');
-    });
-    // 投票コンテンツを表示
-    document.getElementById('vote-content').classList.remove('hidden');
-
-    // ボタンのスタイルを更新
-    document.querySelectorAll('[id^="note-button-"]').forEach(button => {
-      button.classList.remove('bg-blue-100', 'bg-opacity-50', 'text-blue-800', 'border-blue-200', 'border-opacity-50');
-      button.classList.add('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
-    });
-    const voteButton = document.getElementById('vote-button');
-    if (voteButton) {
-      voteButton.classList.remove('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
-      voteButton.classList.add('bg-blue-100', 'bg-opacity-50', 'text-blue-800', 'border-blue-200', 'border-opacity-50');
-    }
+    const targetButton = document.getElementById('vote-button');
+    switchTab('vote-content', targetButton);
   }
 
   // 投票を開始
