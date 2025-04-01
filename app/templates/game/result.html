@@ -48,7 +48,7 @@
   </div>
 
   <!-- メインコンテンツ -->
-  <div class="flex-1 p-8">
+  <div class="flex-1 p-8 pb-24">
     <div id="notes-content" class="relative">
       {% for note in notes %}
         {% set note_id = note.id|string %}
@@ -90,62 +90,61 @@
         {% include 'game/vote.html' %}
       </div>
     </div>
-
-    <!-- 次のノートを表示ボタン -->
-    {% if room.creator_id == current_user.id %}
-      <div id="next-note-button" class="hidden mt-8">
-        <button 
-          onclick="showNextNote()"
-          class="bg-blue-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
-                 hover:bg-blue-700 hover:bg-opacity-90 
-                 transition-all duration-200 transform hover:scale-[1.02] 
-                 backdrop-filter backdrop-blur-sm 
-                 border border-blue-500 border-opacity-30 shadow-lg"
-        >
-          次のノートを表示
-        </button>
-      </div>
-    {% endif %}
-
-    <!-- 投票開始ボタン（ルーム作成者のみ表示） -->
-    {% if room.creator_id == current_user.id and room.settings.get('game_mode') == 'ai_imposter' %}
-      <div id="start-vote-button" class="hidden mt-8">
-        <button 
-          onclick="startVote()"
-          class="bg-green-600 bg-opacity-90 text-white px-6 py-3 rounded-lg 
-                 hover:bg-green-700 hover:bg-opacity-90 
-                 transition-all duration-200 transform hover:scale-[1.02] 
-                 backdrop-filter backdrop-blur-sm 
-                 border border-green-500 border-opacity-30 shadow-lg"
-        >
-          投票を開始
-        </button>
-      </div>
-    {% endif %}
   </div>
 
-  <!-- 次へボタン（ルーム作成者のみ表示） -->
+  <!-- 操作ボタン群（ルーム作成者のみ表示） -->
   {% if room.creator_id == current_user.id %}
-    <div class="fixed bottom-8 right-8 space-y-4">
+    <div class="fixed bottom-8 right-8 flex flex-row gap-4 pr-4">
+      <!-- 次のノートを表示ボタン -->
       <button 
-        onclick="nextParagraph()"
-        class="bg-green-600 bg-opacity-90 text-white px-8 py-4 rounded-lg 
-               hover:bg-green-700 hover:bg-opacity-90 
+        id="next-note-button"
+        onclick="showNextNote()"
+        class="bg-blue-50 bg-opacity-30 text-gray-800 px-6 py-3 rounded-lg 
+               hover:bg-blue-50 hover:bg-opacity-40 
                transition-all duration-200 transform hover:scale-[1.02] 
-               backdrop-filter backdrop-blur-sm 
-               border border-green-500 border-opacity-30 shadow-lg text-lg"
+               backdrop-filter backdrop-blur-md 
+               border border-blue-400 border-opacity-30 shadow-lg"
+      >
+        次のノートを表示
+      </button>
+
+      <!-- 次へボタン -->
+      <button 
+        id="next-button"
+        onclick="nextParagraph()"
+        class="bg-blue-50 bg-opacity-30 text-gray-800 px-6 py-3 rounded-lg 
+               hover:bg-blue-50 hover:bg-opacity-40 
+               transition-all duration-200 transform hover:scale-[1.02] 
+               backdrop-filter backdrop-blur-md 
+               border border-blue-400 border-opacity-30 shadow-lg"
       >
         次へ
       </button>
+
+      <!-- 投票開始ボタン -->
+      {% if room.settings.get('game_mode') == 'ai_imposter' and not room.is_voting_started() %}
+        <button 
+          id="start-vote-button"
+          onclick="startVote()"
+          class="bg-green-50 bg-opacity-30 text-gray-800 px-6 py-3 rounded-lg 
+                 hover:bg-green-50 hover:bg-opacity-40 
+                 transition-all duration-200 transform hover:scale-[1.02] 
+                 backdrop-filter backdrop-blur-md 
+                 border border-green-400 border-opacity-30 shadow-lg"
+        >
+          投票を開始
+        </button>
+      {% endif %}
+
       <!-- 終了ボタン -->
       <button 
         id="end-game-button"
         onclick="endGame()"
-        class="hidden bg-red-600 bg-opacity-90 text-white px-8 py-4 rounded-lg 
-               hover:bg-red-700 hover:bg-opacity-90 
+        class="bg-red-50 bg-opacity-30 text-gray-800 px-6 py-3 rounded-lg 
+               hover:bg-red-50 hover:bg-opacity-40 
                transition-all duration-200 transform hover:scale-[1.02] 
-               backdrop-filter backdrop-blur-sm 
-               border border-red-500 border-opacity-30 shadow-lg text-lg"
+               backdrop-filter backdrop-blur-md 
+               border border-red-400 border-opacity-30 shadow-lg"
       >
         ゲームを終了
       </button>
@@ -394,7 +393,8 @@
   // 次のノートボタンの表示判定
   function checkNextNoteButton() {
     const nextNoteButton = document.getElementById('next-note-button');
-    if (!nextNoteButton) return;
+    const nextButton = document.getElementById('next-button');
+    if (!nextNoteButton || !nextButton) return;
 
     // 現在表示中のノートの全てのパラグラフが表示されているか確認
     const currentNote = document.querySelector('[id^="note-content-"]:not(.hidden)');
@@ -404,7 +404,14 @@
     const paragraphs = visibilityState[currentNoteId] || {};
     const allParagraphsVisible = Object.values(paragraphs).every(visible => visible);
 
-    nextNoteButton.classList.toggle('hidden', !allParagraphsVisible);
+    // 次のノートボタンを非表示にし、次へボタンを表示
+    if (allParagraphsVisible) {
+      nextNoteButton.classList.remove('hidden');
+      nextButton.classList.add('hidden');
+    } else {
+      nextNoteButton.classList.add('hidden');
+      nextButton.classList.remove('hidden');
+    }
   }
 
   // 終了ボタンの表示判定
