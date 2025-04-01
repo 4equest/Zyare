@@ -111,7 +111,7 @@
     {% endwith %}
   </div>
 
-  <main class="relative z-10 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 min-h-svh p-4 w-screen">
+  <main class="relative z-10 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 min-h-svh p-4 w-screen {% if not hide_header %}pt-16{% endif %}">
     {% block content %}{% endblock %}
   </main>
 
@@ -145,7 +145,7 @@
         const scrollPercentage = window.scrollY / scrollHeight;
         
         if (scrollHeight > 0) {
-          thumbHeight = Math.max(40, (window.innerHeight / document.documentElement.scrollHeight) * scrollbarHeight);
+          thumbHeight = Math.max(200, (window.innerHeight / document.documentElement.scrollHeight) * scrollbarHeight);
           thumb.style.height = `${thumbHeight}px`;
           thumb.style.top = `${scrollPercentage * (scrollbarHeight - thumbHeight)}px`;
           
@@ -170,14 +170,16 @@
       }
 
       function handleMouseDown(e) {
-        isDragging = true;
-        startY = e.clientY;
-        scrollTop = window.scrollY;
-        scrollbar.classList.add('dragging');
-        if (fadeTimeout) {
-          clearTimeout(fadeTimeout);
+        if (e.target === thumb) {
+          isDragging = true;
+          startY = e.clientY;
+          scrollTop = window.scrollY;
+          scrollbar.classList.add('dragging');
+          if (fadeTimeout) {
+            clearTimeout(fadeTimeout);
+          }
+          e.preventDefault();
         }
-        e.preventDefault();
       }
 
       function handleMouseMove(e) {
@@ -192,6 +194,8 @@
       }
 
       function handleMouseUp(e) {
+        if (!isDragging) return;
+        
         isDragging = false;
         scrollbar.classList.remove('dragging');
         if (shouldShowScrollbar()) {
