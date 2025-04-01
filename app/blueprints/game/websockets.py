@@ -184,28 +184,6 @@ def init_websocket(socketio):
         join_room(f'room_{room_id}')
         emit('result_connected', {'status': 'ok'}, to=request.sid)
         
-    @socketio.on('connect_result', namespace='/ws/game')
-    def handle_connect_result(data: dict) -> None:
-        """
-        リザルト画面に接続するWebSocketイベント
-        - 終了したルーム向けにjoin
-        """
-        room_id = data.get('room_id')
-        if room_id is None:
-            emit('error_message', {'error': 'room_id is required'}, to=request.sid)
-            return
-
-        room = Room.query.get(room_id)
-        if not room:
-            emit('error_message', {'error': 'Room not found'}, to=request.sid)
-            return
-
-        if room.status != RoomStatus.FINISHED:
-            emit('error_message', {'error': 'まだゲームは終了していません'}, to=request.sid)
-            return
-
-        join_room(f'room_{room_id}')
-        emit('result_connected', {'status': 'ok'}, to=request.sid)
 
     @socketio.on('submit_paragraph', namespace='/ws/game')
     def handle_submit_paragraph(data):
@@ -368,7 +346,7 @@ def init_websocket(socketio):
             return
 
         room:Room = Room.query.get_or_404(room_id)
-        if not room.status == RoomStatus.PLAYING:
+        if room.is_voting_started():
             return
 
         # ルーム作成者かどうかチェック
@@ -393,10 +371,20 @@ def init_websocket(socketio):
         room_id = data.get('room_id')
         votes = data.get('votes', [])
         if not room_id or not votes:
+            emit('error', {'message': '必要な情報が不足しています'})
             return
 
         room:Room = Room.query.get_or_404(room_id)
-        if not room.status == RoomStatus.PLAYING:
+        if not room.is_voting_started():
+            emit('error', {'message': '投票はまだ開始されていません。'})
+            return
+        
+        # 全てのプレイヤーが投票したか確認
+        non_bot_players = [p for p in room.players if not p.user.is_bot]
+        votes_submitted = Vote.query.filter_by(room_id=room_id).all()
+        voted_users = {v.voter_id for v in votes_submitted}
+        if all(p.user_id in voted_users for p in non_bot_players):
+            emit('vote_ended', {'redirect_url': url_for('game.vote_result', room_id=room_id)}, room=f'room_{room_id}', namespace='/ws/game')
             return
 
         # 投票可能人数を計算（全プレイヤー数の平方根の小数点切り捨て）
@@ -418,14 +406,14 @@ def init_websocket(socketio):
         db.session.commit()
 
         # 全プレイヤーが投票したか確認
-        non_bot_players = [p for p in room.players if not p.user.is_bot]
-        votes = Vote.query.filter_by(room_id=room_id).all()
-        voted_users = {v.voter_id for v in votes}
+        
+        votes_submitted = Vote.query.filter_by(room_id=room_id).all()
+        voted_users = {v.voter_id for v in votes_submitted}
 
         if all(p.user_id in voted_users for p in non_bot_players):
             # 投票結果を集計
             vote_counts = {}
-            for v in votes:
+            for v in votes_submitted:
                 for vote_target in v.votes:
                     vote_counts[vote_target] = vote_counts.get(vote_target, 0) + 1
 

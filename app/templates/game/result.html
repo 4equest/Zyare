@@ -161,10 +161,21 @@
   const roomId = {{ room.id }};
   const currentUser = "{{ current_user.id }}";
   const isCreator = {% if room.creator_id == current_user.id %}true{% else %}false{% endif %};
+  const isAiImposterMode = {%if room.settings.get('game_mode') == 'ai_imposter' %}true{% else %}false{% endif %};
   let visibilityState = {{ visibility_state|tojson }};
   let currentNoteId = null;
   let audioContext = null;
   let audioBuffers = new Map();
+  let isVotingStarted = {{ room.is_voting_started()|tojson }};
+
+  // 現在表示中のノートIDを取得する関数
+  function getCurrentNoteId() {
+    const visibleNote = document.querySelector('[id^="note-content-"]:not([style*="height: 0"])');
+    if (visibleNote) {
+      return visibleNote.id.split('-')[2];
+    }
+    return null;
+  }
 
   // WebSocket接続
   socket.emit('subscribe_result', { room_id: roomId });
@@ -175,9 +186,15 @@
   });
 
   // 次のノート表示を受信
-  socket.on('show_next_note', (data) => {
+  socket.on('show_next_note', async (data) => {
     const nextNoteId = data.next_note_id;
-    showNote(nextNoteId);
+    await showNote(nextNoteId);
+    // 次のノートボタンの表示判定
+    checkNextNoteButton();
+    // 終了ボタンの表示判定
+    checkEndGameButton();
+    // 投票開始ボタンの表示判定
+    checkStartVoteButton();
   });
 
   // 投票開始を受信
@@ -195,6 +212,8 @@
 
   // 投票終了を受信
   socket.on('vote_ended', (data) => {
+    isVotingStarted = true;
+    checkEndGameButton();
     window.open(data.redirect_url, '_blank');
   });
 
@@ -285,15 +304,16 @@
       });
 
       // 現在表示されているノートのパラグラフのみ音声を再生
-      if (lastVisibleIndex >= 0 && noteId === currentNoteId) {
+      if (lastVisibleIndex >= 0 && noteId === getCurrentNoteId()) {
         playAudio(noteId, lastVisibleIndex, null);
       }
 
       // ノートボタンの状態を更新
       const noteButton = document.getElementById(`note-button-${noteId}`);
       if (noteButton) {
-        const isVisible = paragraphs['0'] === true;
-        if (isVisible) {
+        // そのノートの全てのパラグラフが表示されているか確認
+        const allParagraphsVisible = Object.values(paragraphs).every(visible => visible);
+        if (allParagraphsVisible) {
           noteButton.disabled = false;
           noteButton.classList.remove('opacity-50', 'cursor-not-allowed');
           noteButton.classList.add('hover:bg-gray-100', 'hover:bg-opacity-50', 'backdrop-filter', 'backdrop-blur-sm');
@@ -307,8 +327,14 @@
       // ノートの高さを更新
       const noteContent = document.getElementById(`note-content-${noteId}`);
       if (noteContent) {
-        const height = noteContent.scrollHeight;
-        noteContent.style.height = `${height}px`;
+        // 現在表示中のノートのみ高さを更新
+        if (noteId === getCurrentNoteId()) {
+          const height = noteContent.scrollHeight;
+          noteContent.style.height = `${height}px`;
+        } else {
+          // 非表示のノートは高さを0に設定
+          noteContent.style.height = '0';
+        }
       }
     });
 
@@ -320,15 +346,59 @@
     checkStartVoteButton();
   }
 
+  // 次のノートボタンの表示判定
+  function checkNextNoteButton() {
+    const nextNoteButton = document.getElementById('next-note-button');
+    const nextButton = document.getElementById('next-button');
+    if (!nextNoteButton || !nextButton) return;
+
+    // currentNoteIdがnullの場合は、最初のノートの表示状態を確認
+    if (!currentNoteId) {
+      const firstNote = document.querySelector('[id^="note-content-"]');
+      if (firstNote) {
+        const firstNoteId = firstNote.id.split('-')[2];
+        const paragraphs = visibilityState[firstNoteId] || {};
+        const allParagraphsVisible = Object.values(paragraphs).every(visible => visible);
+
+        if (allParagraphsVisible) {
+          nextNoteButton.classList.remove('hidden');
+          nextButton.classList.add('hidden');
+        } else {
+          nextNoteButton.classList.add('hidden');
+          nextButton.classList.remove('hidden');
+        }
+      }
+      return;
+    }
+
+    const paragraphs = visibilityState[currentNoteId] || {};
+    const allParagraphsVisible = Object.values(paragraphs).every(visible => visible);
+
+    // 次のノートボタンを非表示にし、次へボタンを表示
+    if (allParagraphsVisible) {
+      nextNoteButton.classList.remove('hidden');
+      nextButton.classList.add('hidden');
+    } else {
+      nextNoteButton.classList.add('hidden');
+      nextButton.classList.remove('hidden');
+    }
+  }
+
   // 初期表示時の高さを設定
   document.addEventListener('DOMContentLoaded', () => {
     const firstNote = document.querySelector('[id^="note-content-"]');
     if (firstNote) {
-      const noteId = firstNote.id.split('-')[2];
-      currentNoteId = noteId;
+      
       firstNote.style.height = 'auto';
       const height = firstNote.scrollHeight;
       firstNote.style.height = `${height}px`;
+
+      currentNoteId = getCurrentNoteId();
+
+      // 初期表示時のボタン表示判定
+      checkNextNoteButton();
+      checkEndGameButton();
+      checkStartVoteButton();
     }
   });
 
@@ -374,9 +444,14 @@
 
   // ノートを表示
   function showNote(noteId) {
-    const targetButton = document.getElementById(`note-button-${noteId}`);
-    switchTab(`note-content-${noteId}`, targetButton);
-    currentNoteId = noteId;
+    return new Promise((resolve) => {
+      const targetButton = document.getElementById(`note-button-${noteId}`);
+      switchTab(`note-content-${noteId}`, targetButton);
+      currentNoteId = noteId;
+      
+      // アニメーション完了後にresolve
+      setTimeout(resolve, 300);
+    });
   }
 
   // 投票を表示
@@ -390,35 +465,21 @@
     socket.emit('start_vote', { room_id: roomId });
   }
 
-  // 次のノートボタンの表示判定
-  function checkNextNoteButton() {
-    const nextNoteButton = document.getElementById('next-note-button');
-    const nextButton = document.getElementById('next-button');
-    if (!nextNoteButton || !nextButton) return;
-
-    // 現在表示中のノートの全てのパラグラフが表示されているか確認
-    const currentNote = document.querySelector('[id^="note-content-"]:not(.hidden)');
-    if (!currentNote) return;
-
-    const currentNoteId = currentNote.id.split('-')[2];
-    const paragraphs = visibilityState[currentNoteId] || {};
-    const allParagraphsVisible = Object.values(paragraphs).every(visible => visible);
-
-    // 次のノートボタンを非表示にし、次へボタンを表示
-    if (allParagraphsVisible) {
-      nextNoteButton.classList.remove('hidden');
-      nextButton.classList.add('hidden');
-    } else {
-      nextNoteButton.classList.add('hidden');
-      nextButton.classList.remove('hidden');
-    }
-  }
-
   // 終了ボタンの表示判定
   function checkEndGameButton() {
     const endGameButton = document.getElementById('end-game-button');
     if (!endGameButton) return;
 
+    // AIインポスターモードの場合
+    if (isAiImposterMode) {
+      // 投票が開始されていない場合は非表示
+      if (!isVotingStarted) {
+        endGameButton.classList.add('hidden');
+        return;
+      }
+    }
+
+    // 全てのパラグラフが表示されているか確認
     const allParagraphsVisible = Object.entries(visibilityState).every(([noteId, paragraphs]) => {
       return Object.values(paragraphs).every(visible => visible);
     });
@@ -461,10 +522,5 @@
     if (!isCreator) return;
     socket.emit('end_game', { room_id: roomId });
   }
-
-  // 初期表示時のボタン表示判定
-  checkNextNoteButton();
-  checkEndGameButton();
-  checkStartVoteButton();
 </script>
 {% endblock %}
