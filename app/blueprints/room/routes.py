@@ -46,7 +46,10 @@ def room_detail(room_id: int):
         if player:
             return redirect(url_for('room.waiting', room_id=room_id))
 
-    return render_template('room/detail.html', room=room, players=room.players)
+    # ユーザーが参加しているかどうかを確認
+    is_participant = Player.query.filter_by(user_id=current_user.id, room_id=room_id).first() is not None
+
+    return render_template('room/detail.html', room=room, players=room.players, is_participant=is_participant)
 
 @room_bp.route('/create', methods=['GET', 'POST'])
 @login_required
