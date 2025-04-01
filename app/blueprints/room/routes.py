@@ -207,7 +207,7 @@ def start_game(room_id: int):
             start_index = i
 
             # 2周分（全体の2倍の長さ）のユーザーIDを連続で選択
-            selected_ids = user_order[start_index:start_index + 2 * len(new_settings["player_order"])]
+            selected_ids = user_order[start_index:start_index + (room.settings.get("total_rounds", 2)) * len(new_settings["player_order"])]
             # 選択した順番で対応するPlayerオブジェクトをnew_note.writersに追加
             for uid in selected_ids:
                 new_note.writers.append(uid)
