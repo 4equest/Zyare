@@ -31,6 +31,61 @@
     .animate-slide-in {
       animation: slideIn 0.3s ease-out;
     }
+
+    /* スクロールバーを非表示にする */
+    ::-webkit-scrollbar {
+      display: none;
+    }
+    * {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* カスタムスクロールバーのスタイル */
+    .custom-scrollbar {
+      position: fixed;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0.75rem;
+      height: 12rem;
+      background: linear-gradient(to bottom, #d6d3d1, #f5f5f5, rgba(255, 255, 255, 0));
+      border-radius: 1rem;
+      box-shadow: 0 4px 8px 2px rgba(0, 0, 0, 0.25);
+      border: 0.5px solid white;
+      backdrop-filter: blur(5px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 50;
+    }
+
+    .custom-scrollbar.visible {
+      opacity: 1;
+    }
+
+    .custom-scrollbar-track {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 1px;
+    }
+
+    .custom-scrollbar-thumb {
+      position: absolute;
+      width: 100%;
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 1rem;
+      transition: background-color 0.2s ease;
+    }
+
+    .custom-scrollbar-thumb:hover {
+      background-color: rgba(0, 0, 0, 0.3);
+    }
+    
   </style>
   {% block head_extras %}{% endblock %}
 </head>
@@ -61,5 +116,80 @@
   </main>
 
   {% block scripts %}{% endblock %}
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const scrollbar = document.createElement('div');
+      scrollbar.className = 'custom-scrollbar';
+      
+      const track = document.createElement('div');
+      track.className = 'custom-scrollbar-track';
+      
+      const thumb = document.createElement('div');
+      thumb.className = 'custom-scrollbar-thumb';
+      
+      scrollbar.appendChild(track);
+      scrollbar.appendChild(thumb);
+      document.body.appendChild(scrollbar);
+
+      let isDragging = false;
+      let startY = 0;
+      let scrollTop = 0;
+      let scrollbarHeight = 0;
+      let thumbHeight = 0;
+
+      function updateScrollbar() {
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollPercentage = window.scrollY / scrollHeight;
+        
+        if (scrollHeight > 0) {
+          scrollbar.classList.add('visible');
+          thumbHeight = Math.max(40, (window.innerHeight / document.documentElement.scrollHeight) * scrollbarHeight);
+          thumb.style.height = `${thumbHeight}px`;
+          thumb.style.top = `${scrollPercentage * (scrollbarHeight - thumbHeight)}px`;
+        } else {
+          scrollbar.classList.remove('visible');
+        }
+      }
+
+      function handleScroll() {
+        updateScrollbar();
+      }
+
+      function handleMouseDown(e) {
+        isDragging = true;
+        startY = e.clientY;
+        scrollTop = window.scrollY;
+      }
+
+      function handleMouseMove(e) {
+        if (!isDragging) return;
+        
+        const deltaY = e.clientY - startY;
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const scrollDelta = (deltaY / (scrollbarHeight - thumbHeight)) * scrollHeight;
+        
+        window.scrollTo(0, scrollTop + scrollDelta);
+      }
+
+      function handleMouseUp() {
+        isDragging = false;
+      }
+
+      function handleResize() {
+        scrollbarHeight = scrollbar.offsetHeight;
+        updateScrollbar();
+      }
+
+      thumb.addEventListener('mousedown', handleMouseDown);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('scroll', handleScroll);
+      window.addEventListener('resize', handleResize);
+
+      // 初期化
+      handleResize();
+      handleScroll();
+    });
+  </script>
 </body>
 </html>
