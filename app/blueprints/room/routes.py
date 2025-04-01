@@ -143,7 +143,7 @@ def join_room(room_id: int):
     - パスワードがある場合は要検証
     - 参加後、待機室へリダイレクト
     """
-    room = Room.query.get_or_404(room_id)
+    room: Room = Room.query.get_or_404(room_id)
     if not room.is_joinable():
         flash('ゲームが開始されているか、このルームは参加不可です。')
         return redirect(url_for('room.room_list'))
@@ -219,7 +219,7 @@ def start_game(room_id: int):
 
             start_index = i
 
-            # 2周分（全体の2倍の長さ）のユーザーIDを連続で選択
+            # ユーザーIDを連続で選択
             selected_ids = user_order[start_index:start_index + (room.settings.get("total_rounds", 2)) * len(new_settings["player_order"])]
             # 選択した順番で対応するPlayerオブジェクトをnew_note.writersに追加
             for uid in selected_ids:

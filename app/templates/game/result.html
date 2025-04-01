@@ -68,7 +68,7 @@
                 id="paragraph-{{ note.id }}-{{ loop.index0 }}"
                 class="{% if not is_visible %}hidden{% endif %} 
                        bg-white bg-opacity-70 backdrop-filter backdrop-blur-sm p-6 rounded-xl 
-                       border border-gray-200 border-opacity-50 shadow-lg"
+                       border border-gray-200 border-opacity-50"
               >
                 <div class="absolute top-2 right-2">
                   <svg onclick="playAudio({{ note.id }}, {{ loop.index0 }}, this)" class="w-6 h-6 cursor-pointer text-gray-500 hover:text-gray-800 transition" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
@@ -99,11 +99,11 @@
       <button 
         id="next-note-button"
         onclick="showNextNote()"
-        class="bg-blue-50 bg-opacity-30 text-gray-800 px-6 py-3 rounded-lg 
-               hover:bg-blue-50 hover:bg-opacity-40 
+        class="bg-blue-50 bg-opacity-30 text-blue-800 px-6 py-3 rounded-lg 
+               hover:bg-blue-50 hover:bg-opacity-80 
                transition-all duration-200 transform hover:scale-[1.02] 
                backdrop-filter backdrop-blur-md 
-               border border-blue-400 border-opacity-30 shadow-lg"
+               border border-blue-400 border-opacity-30"
       >
         次のノートを表示
       </button>
@@ -112,11 +112,11 @@
       <button 
         id="next-button"
         onclick="nextParagraph()"
-        class="bg-blue-50 bg-opacity-30 text-gray-800 px-6 py-3 rounded-lg 
-               hover:bg-blue-50 hover:bg-opacity-40 
+        class="bg-blue-50 bg-opacity-30 text-blue-800 px-6 py-3 rounded-lg 
+               hover:bg-blue-50 hover:bg-opacity-80 
                transition-all duration-200 transform hover:scale-[1.02] 
                backdrop-filter backdrop-blur-md 
-               border border-blue-400 border-opacity-30 shadow-lg"
+               border border-blue-400 border-opacity-30"
       >
         次へ
       </button>
@@ -126,11 +126,11 @@
         <button 
           id="start-vote-button"
           onclick="startVote()"
-          class="bg-green-50 bg-opacity-30 text-gray-800 px-6 py-3 rounded-lg 
-                 hover:bg-green-50 hover:bg-opacity-40 
+          class="bg-green-50 bg-opacity-30 text-green-800 px-6 py-3 rounded-lg 
+                 hover:bg-green-50 hover:bg-opacity-80 
                  transition-all duration-200 transform hover:scale-[1.02] 
                  backdrop-filter backdrop-blur-md 
-                 border border-green-400 border-opacity-30 shadow-lg"
+                 border border-green-400 border-opacity-30"
         >
           投票を開始
         </button>
@@ -140,11 +140,11 @@
       <button 
         id="end-game-button"
         onclick="endGame()"
-        class="bg-red-50 bg-opacity-30 text-gray-800 px-6 py-3 rounded-lg 
-               hover:bg-red-50 hover:bg-opacity-40 
+        class="bg-red-50 bg-opacity-30 text-red-800 px-6 py-3 rounded-lg 
+               hover:bg-red-50 hover:bg-opacity-80 
                transition-all duration-200 transform hover:scale-[1.02] 
                backdrop-filter backdrop-blur-md 
-               border border-red-400 border-opacity-30 shadow-lg"
+               border border-red-400 border-opacity-30"
       >
         ゲームを終了
       </button>

@@ -5,7 +5,7 @@
 {% block head_extras %}{% endblock %}
 {% block content %}
 <div class="min-h-svh border border-gray-200 rounded-lg  backdrop-filter backdrop-blur-sm flex flex-col items-center justify-center p-8">
-  <div class="">
+  <div class="w-full max-w-[95vw] p-8">
     <div class="flex justify-between items-center mb-8">
       <h2 class="text-2xl font-bold text-gray-800">ターン {{ game_state.current_turn + 1 }}</h2>
       <div class="text-sm text-gray-600">
@@ -62,7 +62,7 @@
             {% else %}
               <textarea 
                 id="paragraph-input"
-                class="flex-1 w-full bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm 
+                class="w-full bg-white bg-opacity-50 backdrop-filter backdrop-blur-sm 
                        border border-gray-300 border-opacity-50 rounded-lg p-4 resize-none
                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50
                        focus:border-blue-500 focus:border-opacity-50
